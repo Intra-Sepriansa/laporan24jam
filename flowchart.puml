@@ -1,0 +1,58 @@
+@startuml
+title Alur Sederhana Laporan Shift 3
+
+start
+:App jalan (App.tsx);
+:useAuth pantau status Firebase;
+if (Sudah login?) then (Tidak)
+  :Tampilkan AuthCard (login/daftar/Google);
+  :Firebase proses akun;
+  :State user diperbarui;
+endif
+
+:Mulai useLaporanShift3(uid);
+:Buat storageKey (kode + tahun-bulan);
+:Ambil lastKey dari localStorage atau default;
+:loadFromCloud(key) coba baca cache;
+:Ambil dokumen Firestore users/{uid}/laporans/{key};
+if (Data ada?) then (Ya)
+  :Isi meta + rows dari cloud;
+  :Simpan cache + lastKey;
+else
+  if (Boleh seed?) then (Ya)
+    :Pakai defaultMeta + seedRows;
+    :setDoc ke Firestore dan cache;
+  else
+    :Pakai cache kalau ada, kalau tidak meta default + rows kosong;
+  endif
+endif
+
+:Render UI (NavBar, HeaderBar, MetaForm, DayTable, SummaryCard, ReportOutputPanel, Footer, Toast);
+
+partition "Meta" {
+  :Ubah meta via updateMetaField;
+  :storageKey bisa berubah -> load data key baru;
+  :Auto-save jeda: simpan ke cache + Firestore, update lastKey;
+  :Tombol "Simpan Meta" -> manualSave;
+}
+
+partition "Input Harian" {
+  :Tambah/Ubah/Hapus baris (DayTable);
+  :APC dihitung otomatis (calculateApc);
+  :Auto-save jeda -> cache + Firestore;
+  :Tombol "Simpan Data" -> manualSave;
+  :Reset -> deleteDoc lalu rows dikosongkan;
+}
+
+partition "Laporan & Ringkasan" {
+  :SummaryCard pakai getSummary(rows);
+  :Generate -> buildReportText(meta, rows); set reportText; Toast;
+  if (Copy?) then (Ya)
+    :navigator.clipboard.writeText(reportText);
+    :Toast sukses/gagal;
+  endif
+  :Logout -> signOut(auth) -> kembali ke AuthCard;
+}
+
+stop
+@enduml

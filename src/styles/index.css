@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-b from-slate-50 via-slate-100 to-slate-200 text-slate-800 antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-white/90 backdrop-blur border border-slate-200 rounded-xl shadow-sm;
+  }
+
+  .card-strong {
+    @apply bg-white shadow-md border border-slate-200 rounded-2xl;
+  }
+
+  .pill {
+    @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-medium;
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeout {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
