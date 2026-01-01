@@ -17,24 +17,29 @@ export const MetaForm = ({ meta, onChange, onSave, onReset, onSeed, saving }: Pr
   }
 
   return (
-    <section className="card p-5 space-y-4">
+    <section className="card p-5 space-y-4 rise-in">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-lg font-semibold text-slate-900">Meta Laporan</h2>
+          <h2 className="section-title">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M4 6h16M4 12h10M4 18h16" />
+            </svg>
+            Meta Laporan
+          </h2>
           <p className="text-sm text-slate-500">Isi sekali, dipakai untuk semua tanggal di bulan tersebut.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <button
             type="button"
             onClick={onSeed}
-            className="px-3 py-2 text-sm rounded-lg bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm"
+            className="btn btn-success"
           >
             Isi Contoh Data TB56 November 2025
           </button>
           <button
             type="button"
             onClick={handleReset}
-            className="px-3 py-2 text-sm rounded-lg bg-rose-500 text-white hover:bg-rose-600 shadow-sm"
+            className="btn btn-danger"
           >
             Reset Laporan
           </button>
@@ -47,7 +52,7 @@ export const MetaForm = ({ meta, onChange, onSave, onReset, onSeed, saving }: Pr
           <input
             value={meta.kodeToko}
             onChange={(e) => onChange('kodeToko', e.target.value.toUpperCase())}
-            className="w-full border rounded px-2 py-2 text-sm"
+            className="input-field"
             placeholder="TF81, TB56, dll."
           />
         </label>
@@ -57,7 +62,7 @@ export const MetaForm = ({ meta, onChange, onSave, onReset, onSeed, saving }: Pr
           <input
             value={meta.namaToko}
             onChange={(e) => onChange('namaToko', e.target.value.toUpperCase())}
-            className="w-full border rounded px-2 py-2 text-sm"
+            className="input-field"
             placeholder="SOLEAR, RAYA CANGKUDU"
           />
         </label>
@@ -67,7 +72,7 @@ export const MetaForm = ({ meta, onChange, onSave, onReset, onSeed, saving }: Pr
           <select
             value={meta.bulan}
             onChange={(e) => onChange('bulan', Number(e.target.value))}
-            className="w-full border rounded px-2 py-2 text-sm"
+            className="input-field"
           >
             {bulanList.map((b, idx) => (
               <option key={b} value={idx + 1}>
@@ -84,7 +89,7 @@ export const MetaForm = ({ meta, onChange, onSave, onReset, onSeed, saving }: Pr
             min={2000}
             value={meta.tahun}
             onChange={(e) => onChange('tahun', Number(e.target.value))}
-            className="w-full border rounded px-2 py-2 text-sm"
+            className="input-field"
           />
         </label>
 
@@ -95,7 +100,7 @@ export const MetaForm = ({ meta, onChange, onSave, onReset, onSeed, saving }: Pr
             min={1}
             value={meta.shift}
             onChange={(e) => onChange('shift', Number(e.target.value))}
-            className="w-full border rounded px-2 py-2 text-sm"
+            className="input-field"
           />
         </label>
       </div>
@@ -108,7 +113,7 @@ export const MetaForm = ({ meta, onChange, onSave, onReset, onSeed, saving }: Pr
           type="button"
           onClick={onSave}
           disabled={saving}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 shadow-sm disabled:opacity-60"
+          className="btn btn-primary disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {saving ? 'Menyimpan...' : 'Simpan Meta'}
         </button>

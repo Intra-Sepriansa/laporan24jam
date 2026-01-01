@@ -170,7 +170,7 @@ const App = () => {
   return (
     <div className="min-h-screen">
       <NavBar userEmail={user.email} onLogout={logout} />
-      <main className="max-w-6xl mx-auto p-4 space-y-3">
+      <main className="max-w-6xl mx-auto p-4 space-y-4">
         <HeaderBar meta={meta} />
         <section id="meta">
           <MetaForm
@@ -183,7 +183,7 @@ const App = () => {
           />
         </section>
         <section id="bulk-import">
-          <div className="card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="card p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rise-in">
             <div className="space-y-1">
               <h3 className="text-base font-semibold text-slate-900">Import Salinan</h3>
               <p className="text-sm text-slate-500">Tempel salinan laporan (format No.Tanggal/SPD/STD/APC/Pulsa), baris baru otomatis dibuat.</p>
@@ -192,7 +192,7 @@ const App = () => {
               <button
                 type="button"
                 onClick={() => setBulkOpen(true)}
-                className="flex-1 sm:flex-none px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white hover:bg-slate-50 shadow-sm"
+                className="btn btn-outline flex-1 sm:flex-none"
               >
                 Import Salinan
               </button>

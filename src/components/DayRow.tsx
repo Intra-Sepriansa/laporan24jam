@@ -23,7 +23,7 @@ export const DayRow = ({ index, row, onChange, onDelete }: Props) => {
           max={31}
           value={row.tanggal ?? ''}
           onChange={(e) => onChange(index, 'tanggal', e.target.value === '' ? null : Number(e.target.value))}
-          className="w-full border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400 bg-white/80"
+          className="input-field-compact"
         />
       </td>
       <td className="px-2 py-2">
@@ -32,7 +32,7 @@ export const DayRow = ({ index, row, onChange, onDelete }: Props) => {
           min={0}
           value={row.spd ?? ''}
           onChange={(e) => onChange(index, 'spd', e.target.value === '' ? null : Number(e.target.value))}
-          className="w-full border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+          className="input-field-compact"
         />
       </td>
       <td className="px-2 py-2">
@@ -41,14 +41,14 @@ export const DayRow = ({ index, row, onChange, onDelete }: Props) => {
           min={0}
           value={row.std ?? ''}
           onChange={(e) => onChange(index, 'std', e.target.value === '' ? null : Number(e.target.value))}
-          className="w-full border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+          className="input-field-compact"
         />
       </td>
       <td className="px-2 py-2">
         <input
           value={apcDisplay}
           readOnly
-          className="w-full border rounded px-2 py-1 text-sm bg-slate-50 text-right"
+          className="input-field-compact-muted text-right"
           placeholder="Otomatis"
         />
       </td>
@@ -58,7 +58,7 @@ export const DayRow = ({ index, row, onChange, onDelete }: Props) => {
           min={0}
           value={row.pulsa ?? 0}
           onChange={(e) => onChange(index, 'pulsa', e.target.value === '' ? 0 : Number(e.target.value))}
-          className="w-full border rounded px-2 py-1 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+          className="input-field-compact"
         />
       </td>
       <td className="px-2 py-2 text-right">

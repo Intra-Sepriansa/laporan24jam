@@ -1,83 +1,71 @@
-# Laporan Shift 3
+<p align="center">
+  <img src="public/logo-alfamart.png" width="72" alt="Laporan Shift 3 Logo" />
+</p>
 
-## Mobile (React Native/Expo)
+<h1 align="center">Laporan Shift 3</h1>
 
-- Lokasi kode: `mobile/`
-- Jalankan: `cd mobile && npm install` (sekali), lalu `npm run android` (butuh Android Studio/Emulator) atau `npm start` dan scan QR di Expo Go.
-- Fitur: login/daftar Firebase Auth, input harian, auto-save Firestore + cache AsyncStorage, generate teks laporan, copy ke clipboard, export Excel (dibagikan via sheet Android), seed data contoh TB56.
+<p align="center">
+  <img
+    src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=20&duration=2500&pause=600&color=0F4C81&center=true&vCenter=true&width=640&lines=Laporan+Shift+3+Dashboard;Auto-save+lokal+dan+cloud;Export+Excel+dan+Copy+Laporan"
+    alt="Animated headline"
+  />
+</p>
 
-# React + TypeScript + Vite
+<p align="center">
+  <img alt="React" src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white" />
+  <img alt="Vite" src="https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white" />
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white" />
+  <img alt="Firebase" src="https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-FFCA28?logo=firebase&logoColor=black" />
+  <img alt="Tailwind CSS" src="https://img.shields.io/badge/TailwindCSS-3-06B6D4?logo=tailwindcss&logoColor=white" />
+</p>
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Ringkasan
+Laporan Shift 3 membantu input data harian SPD, STD, APC, dan pulsa agar cepat dibuat, konsisten, dan aman dari kehilangan data. Web ini memakai Firebase Auth dan Firestore, dengan cache lokal untuk pengalaman cepat dan tahan refresh.
 
-Currently, two official plugins are available:
+## Fitur Utama
+- Input harian SPD/STD/Pulsa, APC dihitung otomatis.
+- Ringkasan bulanan: total SPD, STD, pulsa, rata-rata APC.
+- Auto-save lokal + sinkron Firestore (data aman saat refresh/keluar tab).
+- Import salinan laporan (bulk), copy laporan, export Excel.
+- Login email/password dan Google.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Struktur Proyek
+- `src/`: Web React + Vite.
+- `mobile/`: Aplikasi React Native / Expo.
+- `public/`: Asset statis untuk web.
 
-## React Compiler
+## Menjalankan Web
+```bash
+npm install
+npm run dev
+```
+Buka `http://localhost:5173`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Menjalankan Mobile (React Native/Expo)
+```bash
+cd mobile
+npm install
+npm run android
+```
+Atau gunakan `npm start` dan scan QR di Expo Go.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Konfigurasi Firebase
+Buat file `.env` di root dengan isi berikut:
+```
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_MEASUREMENT_ID=...
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Persistensi Data
+- Setiap perubahan disimpan ke localStorage dan Firestore secara otomatis.
+- Saat load, aplikasi memilih data dengan `updatedAt` terbaru agar cache lokal tidak tertimpa data lama.
+- Jika data cloud belum ada, cache lokal akan diunggah saat koneksi tersedia.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-# laporan24jam
-# laporan24jam
+## Catatan
+- Gunakan tombol Reset untuk menghapus laporan pada meta aktif.
+- Export Excel tersimpan lokal di perangkat (browser download).

@@ -3,6 +3,7 @@ import type { Meta, DayRow } from '../types/laporan'
 export type StoredReport = {
   meta: Meta
   rows: DayRow[]
+  updatedAt?: number
 }
 
 const LAST_KEY = 'laporan_shift3_lastKey'

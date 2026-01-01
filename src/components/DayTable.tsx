@@ -19,10 +19,15 @@ export const DayTable = ({
   saving,
 }: Props) => {
   return (
-    <section className="card p-5 space-y-3" id="input">
+    <section className="card p-5 space-y-3 rise-in" id="input">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-slate-900">Tabel Input Harian</h2>
+          <h2 className="section-title">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+              <path d="M4 6h16M4 10h16M4 14h8M4 18h8" />
+            </svg>
+            Tabel Input Harian
+          </h2>
           <p className="text-sm text-slate-500">Isi SPD &amp; STD secara manual, APC dihitung otomatis.</p>
         </div>
         <div className="flex gap-2 flex-wrap w-full sm:w-auto sm:justify-end">
@@ -31,7 +36,7 @@ export const DayTable = ({
               type="button"
               onClick={onSaveAll}
               disabled={saving}
-              className="px-3 py-2 text-sm rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm disabled:opacity-60"
+              className="btn btn-success disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {saving ? 'Menyimpan...' : 'Simpan Data'}
             </button>
@@ -39,7 +44,7 @@ export const DayTable = ({
           <button
             type="button"
             onClick={onAddRow}
-            className="px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+            className="btn btn-primary"
           >
             + Tambah Baris
           </button>
@@ -83,7 +88,7 @@ export const DayTable = ({
       </div>
 
       {/* Tampilan kartu untuk mobile */}
-      <div className="sm:hidden space-y-3">
+        <div className="sm:hidden space-y-3">
         {rows.length === 0 ? (
           <div className="text-center text-slate-500 text-sm py-2">Belum ada baris. Tambah baris untuk mulai.</div>
         ) : (
@@ -110,7 +115,7 @@ export const DayTable = ({
                       max={31}
                       value={row.tanggal ?? ''}
                       onChange={(e) => handle('tanggal', e.target.value === '' ? null : Number(e.target.value))}
-                      className="w-full border rounded px-2 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      className="input-field"
                     />
                   </label>
                   <label className="text-[11px] text-slate-500 space-y-1">
@@ -120,7 +125,7 @@ export const DayTable = ({
                       min={0}
                       value={row.spd ?? ''}
                       onChange={(e) => handle('spd', e.target.value === '' ? null : Number(e.target.value))}
-                      className="w-full border rounded px-2 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      className="input-field"
                     />
                   </label>
                   <label className="text-[11px] text-slate-500 space-y-1">
@@ -130,7 +135,7 @@ export const DayTable = ({
                       min={0}
                       value={row.std ?? ''}
                       onChange={(e) => handle('std', e.target.value === '' ? null : Number(e.target.value))}
-                      className="w-full border rounded px-2 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      className="input-field"
                     />
                   </label>
                   <label className="text-[11px] text-slate-500 space-y-1">
@@ -138,7 +143,7 @@ export const DayTable = ({
                     <input
                       readOnly
                       value={row.std && row.std > 0 && row.spd ? Math.round((row.spd ?? 0) / (row.std ?? 1)) : ''}
-                      className="w-full border rounded px-2 py-2 text-sm bg-slate-50 text-right"
+                      className="input-field-muted text-right"
                       placeholder="Otomatis"
                     />
                   </label>
@@ -149,7 +154,7 @@ export const DayTable = ({
                       min={0}
                       value={row.pulsa ?? 0}
                       onChange={(e) => handle('pulsa', e.target.value === '' ? 0 : Number(e.target.value))}
-                      className="w-full border rounded px-2 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      className="input-field"
                     />
                   </label>
                 </div>

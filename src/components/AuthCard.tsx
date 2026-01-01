@@ -31,9 +31,14 @@ export const AuthCard = ({ onLogin, onRegister, onGoogle, error }: Props) => {
   }
 
   return (
-    <div className="max-w-md mx-auto mt-10 card-strong p-6 space-y-4">
+    <div className="max-w-md mx-auto mt-10 card-strong p-6 space-y-4 rise-in">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Masuk ke Laporan Shift 3</h1>
+        <h1 className="text-xl font-semibold text-slate-900 flex items-center gap-2">
+          <svg viewBox="0 0 24 24" className="h-6 w-6 text-sky-600" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6" />
+          </svg>
+          Masuk ke Laporan Shift 3
+        </h1>
         <p className="text-sm text-slate-500">Gunakan email & password. Jika belum punya akun, daftar dulu.</p>
       </div>
       <form className="space-y-3" onSubmit={handleSubmit}>
@@ -44,7 +49,7 @@ export const AuthCard = ({ onLogin, onRegister, onGoogle, error }: Props) => {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full border rounded px-3 py-2 text-sm"
+            className="input-field"
             placeholder="nama@contoh.com"
           />
         </label>
@@ -55,7 +60,7 @@ export const AuthCard = ({ onLogin, onRegister, onGoogle, error }: Props) => {
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full border rounded px-3 py-2 text-sm"
+            className="input-field"
             placeholder="Minimal 6 karakter"
           />
         </label>
@@ -63,7 +68,7 @@ export const AuthCard = ({ onLogin, onRegister, onGoogle, error }: Props) => {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-blue-600 text-white rounded-lg py-2 text-sm hover:bg-blue-700 disabled:opacity-60"
+          className="btn btn-primary w-full disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {submitting ? 'Memproses...' : mode === 'login' ? 'Masuk' : 'Daftar'}
         </button>
@@ -86,17 +91,17 @@ export const AuthCard = ({ onLogin, onRegister, onGoogle, error }: Props) => {
           }
         }}
         disabled={googleLoading}
-        className="w-full border rounded-lg py-2 text-sm bg-white hover:bg-slate-50 disabled:opacity-60"
+        className="btn btn-outline w-full disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {googleLoading ? 'Memproses...' : 'Masuk dengan Google'}
       </button>
       <div className="text-sm text-slate-600">
         {mode === 'login' ? (
-          <button type="button" className="text-blue-600 hover:underline" onClick={() => setMode('register')}>
+          <button type="button" className="text-sky-600 hover:underline" onClick={() => setMode('register')}>
             Belum punya akun? Daftar
           </button>
         ) : (
-          <button type="button" className="text-blue-600 hover:underline" onClick={() => setMode('login')}>
+          <button type="button" className="text-sky-600 hover:underline" onClick={() => setMode('login')}>
             Sudah punya akun? Masuk
           </button>
         )}

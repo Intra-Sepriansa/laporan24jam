@@ -7,6 +7,7 @@ import {
   setLastKeyForUser,
   saveCacheForUser,
   loadCacheForUser,
+  type StoredReport,
 } from '../utils/storage'
 import { db } from '../firebase'
 import type { DayRow, DayRowInput, Meta, Summary } from '../types/laporan'
@@ -39,10 +40,25 @@ const seedRows: DayRow[] = [
   { tanggal: 9, spd: null, std: null, apc: null, pulsa: null },
 ]
 
-type StoredReport = {
-  meta: Meta
-  rows: DayRow[]
+const resolveReport = (cached: StoredReport | null, remote: StoredReport | null) => {
+  if (cached && remote) {
+    const cachedAt = cached.updatedAt ?? 0
+    const remoteAt = remote.updatedAt ?? 0
+    if (cachedAt >= remoteAt) {
+      return { source: 'cache' as const, report: cached }
+    }
+    return { source: 'remote' as const, report: remote }
+  }
+  if (cached) return { source: 'cache' as const, report: cached }
+  if (remote) return { source: 'remote' as const, report: remote }
+  return null
 }
+
+const withUpdatedAt = (report: StoredReport) => ({
+  meta: report.meta ?? defaultMeta,
+  rows: report.rows ?? [],
+  updatedAt: report.updatedAt ?? Date.now(),
+})
 
 export const useLaporanShift3 = (userId: string | null) => {
   const [meta, setMeta] = useState<Meta>(defaultMeta)
@@ -68,30 +84,39 @@ export const useLaporanShift3 = (userId: string | null) => {
 
         const ref = doc(db, 'users', userId, 'laporans', key)
         const snap = await getDoc(ref)
-        if (snap.exists()) {
-          const data = snap.data() as StoredReport
-          setMeta(data.meta)
-          setRows(data.rows ?? [])
-          hydratedRef.current = true
-          setLastKeyForUser(userId, key)
-          saveCacheForUser(userId, key, data)
-        } else if (allowDefault && !seededRef.current) {
-          // Buat dokumen baru dengan seed default supaya tidak hilang saat refresh berikutnya.
-          const payload: StoredReport = { meta: defaultMeta, rows: seedRows }
+        const remote = snap.exists() ? (snap.data() as StoredReport) : null
+
+        if (!remote && !cached) {
+          if (allowDefault && !seededRef.current) {
+            // Buat dokumen baru dengan seed default supaya tidak hilang saat refresh berikutnya.
+            const payload: StoredReport = { meta: defaultMeta, rows: seedRows, updatedAt: Date.now() }
+            await setDoc(ref, payload)
+            seededRef.current = true
+            setMeta(defaultMeta)
+            setRows(seedRows)
+            hydratedRef.current = true
+            setLastKeyForUser(userId, key)
+            saveCacheForUser(userId, key, payload)
+          } else {
+            // Jika belum ada data untuk meta ini, biarkan meta tetap & kosongkan rows.
+            hydratedRef.current = true
+            setRows([])
+            setLastKeyForUser(userId, key)
+          }
+          return
+        }
+
+        const resolved = resolveReport(cached, remote)
+        if (!resolved) return
+
+        const payload = withUpdatedAt(resolved.report)
+        setMeta(payload.meta)
+        setRows(payload.rows ?? [])
+        hydratedRef.current = true
+        setLastKeyForUser(userId, key)
+        saveCacheForUser(userId, key, payload)
+        if (resolved.source === 'cache' || !remote?.updatedAt) {
           await setDoc(ref, payload)
-          seededRef.current = true
-          setMeta(defaultMeta)
-          setRows(seedRows)
-          hydratedRef.current = true
-          setLastKeyForUser(userId, key)
-          saveCacheForUser(userId, key, payload)
-        } else {
-          // Jika tidak ada di cloud tapi ada cache, tetap pakai cache. Jika tidak ada, kosongkan.
-          hydratedRef.current = true
-          setRows(cached?.rows ?? [])
-          setMeta(cached?.meta ?? defaultMeta)
-          setLastKeyForUser(userId, key)
-          if (cached) saveCacheForUser(userId, key, cached)
         }
       } catch (err) {
         console.error('Gagal load data dari cloud', err)
@@ -129,7 +154,7 @@ export const useLaporanShift3 = (userId: string | null) => {
     if (!userId) return
     // Debounce penulisan ke Firestore supaya lebih cepat terasa (cache langsung disimpan).
     if (saveTimeout.current) clearTimeout(saveTimeout.current)
-    const payload: StoredReport = { meta, rows }
+    const payload: StoredReport = { meta, rows, updatedAt: Date.now() }
     saveCacheForUser(userId, storageKey, payload)
     saveTimeout.current = setTimeout(() => {
       const save = async () => {
@@ -228,7 +253,7 @@ export const useLaporanShift3 = (userId: string | null) => {
   const manualSave = useCallback(async () => {
     if (!userId) return
     try {
-      const payload: StoredReport = { meta, rows }
+      const payload: StoredReport = { meta, rows, updatedAt: Date.now() }
       saveCacheForUser(userId, storageKey, payload)
       await setDoc(doc(db, 'users', userId, 'laporans', storageKey), payload)
       setLastKeyForUser(userId, storageKey)

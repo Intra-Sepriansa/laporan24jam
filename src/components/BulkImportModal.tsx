@@ -67,10 +67,15 @@ export const BulkImportModal = ({ open, onClose, onSubmit }: Props) => {
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden">
+      <div className="card-strong w-full max-w-2xl overflow-hidden rise-in">
         <div className="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold text-slate-900">Tambah data terlewat (tempel salinan)</p>
+            <p className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <svg viewBox="0 0 24 24" className="h-5 w-5 text-sky-600" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                <path d="M4 7h16M4 12h16M4 17h10" />
+              </svg>
+              Tambah data terlewat (tempel salinan)
+            </p>
             <p className="text-xs text-slate-500">
               Format per baris: <span className="font-semibold">tanggal spd std [pulsa]</span>. Pisah dengan spasi,
               koma, atau garis miring.
@@ -79,7 +84,7 @@ export const BulkImportModal = ({ open, onClose, onSubmit }: Props) => {
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-700 text-sm px-2"
+            className="btn btn-ghost"
             aria-label="Tutup"
           >
             ✕
@@ -94,7 +99,7 @@ export const BulkImportModal = ({ open, onClose, onSubmit }: Props) => {
               setError(null)
             }}
             rows={8}
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+            className="input-field font-mono"
             placeholder={`Contoh:\n9.9/3.340.900/61/54.768/15.000\n10.10/2.033.301/53/38.364/0\n11.11.3.100.801/64/48.450/116.500`}
           />
           <div className="text-xs text-slate-600 flex justify-between items-center">
@@ -111,14 +116,14 @@ export const BulkImportModal = ({ open, onClose, onSubmit }: Props) => {
           <button
             type="button"
             onClick={onClose}
-            className="px-3 py-2 text-sm rounded-lg border border-slate-300 bg-white hover:bg-slate-50"
+            className="btn btn-outline"
           >
             Batal
           </button>
           <button
             type="button"
             onClick={handleSubmit}
-            className="px-3 py-2 text-sm rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
+            className="btn btn-primary"
           >
             Tambahkan
           </button>
