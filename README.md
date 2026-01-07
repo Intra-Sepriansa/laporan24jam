@@ -69,3 +69,6 @@ VITE_FIREBASE_MEASUREMENT_ID=...
 ## Catatan
 - Gunakan tombol Reset untuk menghapus laporan pada meta aktif.
 - Export Excel tersimpan lokal di perangkat (browser download).
+<div align="center">
+  <img src="https://raw.githubusercontent.com/platane/snk/output/github-contribution-grid-snake.svg" alt="Animated footer" />
+</div>
