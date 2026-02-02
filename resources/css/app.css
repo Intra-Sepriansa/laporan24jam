@@ -62,39 +62,47 @@
 }
 
 :root {
+    /* Alfamart Brand Colors */
+    --alfamart-red: oklch(0.577 0.245 27.325); /* #E31E24 */
+    --alfamart-red-dark: oklch(0.496 0.221 27.325); /* #C41E3A */
+    --alfamart-blue: oklch(0.506 0.177 252.322); /* #0066CC */
+    --alfamart-blue-dark: oklch(0.398 0.141 252.322); /* #004C99 */
+    --alfamart-yellow: oklch(0.828 0.189 84.429); /* #FFB81C */
+    
+    /* Theme Colors */
     --background: oklch(1 0 0);
     --foreground: oklch(0.145 0 0);
     --card: oklch(1 0 0);
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
+    --primary: var(--alfamart-red); /* Use Alfamart Red as primary */
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
+    --secondary: var(--alfamart-blue); /* Use Alfamart Blue as secondary */
+    --secondary-foreground: oklch(0.985 0 0);
     --muted: oklch(0.97 0 0);
     --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --destructive-foreground: oklch(0.577 0.245 27.325);
+    --accent: var(--alfamart-yellow); /* Use Alfamart Yellow as accent */
+    --accent-foreground: oklch(0.145 0 0);
+    --destructive: var(--alfamart-red);
+    --destructive-foreground: oklch(0.985 0 0);
     --border: oklch(0.922 0 0);
     --input: oklch(0.922 0 0);
-    --ring: oklch(0.87 0 0);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
+    --ring: var(--alfamart-blue);
+    --chart-1: var(--alfamart-red);
+    --chart-2: var(--alfamart-blue);
+    --chart-3: var(--alfamart-yellow);
     --chart-4: oklch(0.828 0.189 84.429);
     --chart-5: oklch(0.769 0.188 70.08);
     --radius: 0.625rem;
     --sidebar: oklch(0.985 0 0);
     --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
+    --sidebar-primary: var(--alfamart-red);
     --sidebar-primary-foreground: oklch(0.985 0 0);
     --sidebar-accent: oklch(0.97 0 0);
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.87 0 0);
+    --sidebar-ring: var(--alfamart-blue);
 }
 
 .dark {

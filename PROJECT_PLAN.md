@@ -19,9 +19,9 @@ Framework: Laravel 11.x
 ├── Database: MySQL 8.0 / SQLite (Development)
 ├── Authentication: Laravel Fortify
 ├── API: RESTful API + Inertia.js
-├── Queue: Laravel Queue (untuk background jobs)
-├── Cache: Redis (untuk session & cache)
-├── Storage: Local / S3 (untuk file uploads)
+├── Queue: Database Queue (simple & no extra setup)
+├── Cache: File Cache (built-in, no Redis needed)
+├── Storage: Local Storage (untuk file uploads)
 └── PDF Generation: DomPDF / Snappy (wkhtmltopdf)
 ```
 
