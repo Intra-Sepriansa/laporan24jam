@@ -77,6 +77,18 @@ export default function ShowReport({ report }: Props) {
                             Print
                         </Button>
                         <Button variant="outline" asChild>
+                            <a href={route('reports.export.pdf', report.id)}>
+                                <Download className="w-4 h-4 mr-2" />
+                                PDF
+                            </a>
+                        </Button>
+                        <Button variant="outline" asChild>
+                            <a href={route('reports.export.excel', report.id)}>
+                                <Download className="w-4 h-4 mr-2" />
+                                Excel
+                            </a>
+                        </Button>
+                        <Button variant="outline" asChild>
                             <a href={route('reports.edit', report.id)}>
                                 <Edit className="w-4 h-4 mr-2" />
                                 Edit

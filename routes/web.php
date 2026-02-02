@@ -27,6 +27,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Shift Reports
     Route::resource('reports', App\Http\Controllers\ShiftReportController::class);
+    
+    // Export
+    Route::get('reports/{report}/export/pdf', [App\Http\Controllers\ExportController::class, 'exportPdf'])->name('reports.export.pdf');
+    Route::get('reports/{report}/export/excel', [App\Http\Controllers\ExportController::class, 'exportExcel'])->name('reports.export.excel');
 });
 
 require __DIR__.'/settings.php';
