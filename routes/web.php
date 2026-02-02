@@ -21,9 +21,12 @@ Route::post('logout', [NikLoginController::class, 'destroy'])
     ->middleware('auth')
     ->name('logout');
 
-// Dashboard
+// Dashboard & Reports
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    
+    // Shift Reports
+    Route::resource('reports', App\Http\Controllers\ShiftReportController::class);
 });
 
 require __DIR__.'/settings.php';
