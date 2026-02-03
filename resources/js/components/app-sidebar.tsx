@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { Store, FileText, LayoutGrid, Settings } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -13,7 +13,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import type { NavItem, SharedData } from '@/types';
 
 const mainNavItems: NavItem[] = [
     {
@@ -37,6 +37,12 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
+    const storeInfo = auth?.user?.employee?.store;
+    const storeName = storeInfo?.name ?? 'Nama Toko';
+    const storeCode = storeInfo?.code ?? '';
+    const employeeName = auth?.user?.name ?? 'Nama Karyawan';
+
     return (
         <Sidebar
             collapsible="icon"
@@ -67,11 +73,16 @@ export function AppSidebar() {
                                     </div>
                                     <div className="mt-4 flex flex-wrap gap-2 text-[0.6rem] font-semibold uppercase tracking-[0.2em] text-white/70 group-data-[collapsible=icon]:hidden">
                                         <span className="rounded-full bg-white/15 px-3 py-1">
-                                            Operasional
+                                            {storeName}
                                         </span>
-                                        <span className="rounded-full bg-white/15 px-3 py-1">
-                                            Laporan Bulanan
-                                        </span>
+                                        {storeCode && (
+                                            <span className="rounded-full bg-white/15 px-3 py-1">
+                                                {storeCode}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="mt-2 text-[0.65rem] font-medium text-white/80 group-data-[collapsible=icon]:hidden">
+                                        {employeeName}
                                     </div>
                                 </div>
                             </Link>

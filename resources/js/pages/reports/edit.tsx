@@ -185,7 +185,13 @@ export default function EditReport() {
     const storeName = storeInfo?.name ?? '-';
     const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
-    const formatShareNumber = (value: number): string => formatNumber(Math.round(value));
+    const formatShareNumber = (value: number | string): string => {
+        const numericValue =
+            typeof value === 'number'
+                ? value
+                : parseFloat(String(value).replace(/[^\d.-]/g, ''));
+        return formatNumber(Number.isFinite(numericValue) ? numericValue : 0);
+    };
 
     const buildShareText = (): string => {
         const filledDetails = data.details.filter((detail) => !isRowEmpty(detail));
@@ -200,32 +206,61 @@ export default function EditReport() {
 
         const rows = filledDetails.length
             ? filledDetails.map((detail, index) => {
-                  const pulsaText =
-                      detail.pulsa && detail.pulsa > 0
-                          ? formatShareNumber(detail.pulsa)
-                          : '';
-                  const apcValue =
-                      detail.std > 0 ? Math.floor(detail.spd / detail.std) : 0;
-                  return `${index + 1}. ${detail.day_number}/${formatShareNumber(detail.spd)}/${formatShareNumber(detail.std)}/${formatShareNumber(apcValue)}/${pulsaText}`;
+                  const spdValue = typeof detail.spd === 'number' ? detail.spd : parseFloat(String(detail.spd)) || 0;
+                  const stdValue = typeof detail.std === 'number' ? detail.std : parseFloat(String(detail.std)) || 0;
+                  const pulsaValue = typeof detail.pulsa === 'number' ? detail.pulsa : parseFloat(String(detail.pulsa)) || 0;
+                  const pulsaText = pulsaValue > 0 ? formatShareNumber(pulsaValue) : '';
+                  const apcValue = stdValue > 0 ? Math.floor(spdValue / stdValue) : 0;
+                  return `${index + 1}. ${detail.day_number}/${formatShareNumber(spdValue)}/${formatShareNumber(stdValue)}/${formatShareNumber(apcValue)}/${pulsaText}`;
               })
             : ['-'];
 
         return [...header, ...rows].join('\n');
     };
 
+    const copyWithFallback = (text: string): boolean => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.top = '0';
+        textarea.style.left = '0';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        let success = false;
+        try {
+            success = document.execCommand('copy');
+        } catch (error) {
+            success = false;
+        }
+        document.body.removeChild(textarea);
+        return success;
+    };
+
     const handleCopyFormat = async () => {
         const text = buildShareText();
-        try {
-            if (navigator?.clipboard?.writeText) {
+        let copied = false;
+
+        if (window.isSecureContext && navigator?.clipboard?.writeText) {
+            try {
                 await navigator.clipboard.writeText(text);
-            } else {
-                window.prompt('Salin format laporan:', text);
+                copied = true;
+            } catch (error) {
+                copied = false;
             }
-            setCopyState('copied');
-            window.setTimeout(() => setCopyState('idle'), 2000);
-        } catch (error) {
-            setCopyState('error');
         }
+
+        if (!copied) {
+            copied = copyWithFallback(text);
+        }
+
+        if (!copied) {
+            window.prompt('Salin format laporan:', text);
+        }
+
+        setCopyState(copied ? 'copied' : 'error');
+        window.setTimeout(() => setCopyState('idle'), 2000);
     };
 
     return (
@@ -581,7 +616,7 @@ export default function EditReport() {
                                         {data.details.length} hari diinput
                                     </span>
                                     <Button type="button" variant="outline" onClick={handleCopyFormat} className="w-full sm:w-auto">
-                                        {copyState === 'copied' ? 'Format Tersalin' : 'Salin Format'}
+                                        {copyState === 'copied' ? 'Format Tersalin' : copyState === 'error' ? 'Gagal Salin' : 'Salin Format'}
                                     </Button>
                                 </div>
                             </div>

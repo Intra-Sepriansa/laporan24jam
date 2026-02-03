@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ArrowLeft, Save, Trash2 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { formatCurrency, formatNumber } from '@/lib/utils';
 import { index, store as storeRoute } from '@/routes/reports';
 import type { SharedData } from '@/types';
@@ -19,6 +19,14 @@ interface DetailRow {
     apc: number;
     pulsa: number;
     notes: string;
+}
+
+interface ExistingReport {
+    id: number;
+    month_year: string;
+    shift: number;
+    report_date: string;
+    details: DetailRow[];
 }
 
 const toLocalDateInput = (date: Date): string => {
@@ -44,12 +52,19 @@ const isRowEmpty = (detail: DetailRow): boolean =>
     (detail.pulsa ?? 0) === 0 &&
     (detail.notes ?? '').trim() === '';
 
+type CreatePageProps = SharedData & {
+    existingReport?: ExistingReport | null;
+};
+
 export default function CreateReport() {
-    const { auth } = usePage<SharedData>().props;
-    const currentDate = new Date();
-    const currentMonth = currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
-    const currentYear = currentDate.getFullYear();
-    const currentMonthNumber = currentDate.getMonth() + 1;
+    const { auth, existingReport } = usePage<CreatePageProps>().props;
+    const initialDate = existingReport
+        ? new Date(`${existingReport.report_date}T00:00:00`)
+        : new Date();
+    const currentMonth = existingReport?.month_year
+        ?? initialDate.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
+    const currentYear = initialDate.getFullYear();
+    const currentMonthNumber = initialDate.getMonth() + 1;
     
     const maxDays = 30;
     const [daysInMonth, setDaysInMonth] = useState(maxDays);
@@ -58,10 +73,19 @@ export default function CreateReport() {
 
     const { data, setData, post, processing, errors } = useForm({
         month_year: currentMonth,
-        shift: 3,
-        report_date: toLocalDateInput(currentDate),
-        details: [] as DetailRow[],
+        shift: existingReport?.shift ?? 3,
+        report_date: toLocalDateInput(initialDate),
+        details: existingReport?.details?.map((detail) => ({
+            ...detail,
+            spd: Number(detail.spd) || 0,
+            std: Number(detail.std) || 0,
+            apc: Number(detail.apc) || 0,
+            pulsa: Number(detail.pulsa) || 0,
+            notes: detail.notes ?? '',
+        })) ?? ([] as DetailRow[]),
     });
+
+    const initialLoadRef = useRef(true);
 
     // Initialize details when month changes
     useEffect(() => {
@@ -72,6 +96,13 @@ export default function CreateReport() {
         ).getDate();
         const days = Math.min(daysInSelectedMonth, maxDays);
         setDaysInMonth(days);
+
+        if (initialLoadRef.current) {
+            initialLoadRef.current = false;
+            if (existingReport?.details?.length) {
+                return;
+            }
+        }
 
         const firstDayDate = new Date(selectedYear, selectedMonth - 1, 1);
         setData('details', [createDetailRow(firstDayDate)]);
@@ -165,7 +196,13 @@ export default function CreateReport() {
     const storeName = storeInfo?.name ?? '-';
     const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
 
-    const formatShareNumber = (value: number): string => formatNumber(Math.round(value));
+    const formatShareNumber = (value: number | string): string => {
+        const numericValue =
+            typeof value === 'number'
+                ? value
+                : parseFloat(String(value).replace(/[^\d.-]/g, ''));
+        return formatNumber(Number.isFinite(numericValue) ? numericValue : 0);
+    };
 
     const buildShareText = (): string => {
         const filledDetails = data.details.filter((detail) => !isRowEmpty(detail));
@@ -180,32 +217,61 @@ export default function CreateReport() {
 
         const rows = filledDetails.length
             ? filledDetails.map((detail, index) => {
-                  const pulsaText =
-                      detail.pulsa && detail.pulsa > 0
-                          ? formatShareNumber(detail.pulsa)
-                          : '';
-                  const apcValue =
-                      detail.std > 0 ? Math.floor(detail.spd / detail.std) : 0;
-                  return `${index + 1}. ${detail.day_number}/${formatShareNumber(detail.spd)}/${formatShareNumber(detail.std)}/${formatShareNumber(apcValue)}/${pulsaText}`;
+                  const spdValue = typeof detail.spd === 'number' ? detail.spd : parseFloat(String(detail.spd)) || 0;
+                  const stdValue = typeof detail.std === 'number' ? detail.std : parseFloat(String(detail.std)) || 0;
+                  const pulsaValue = typeof detail.pulsa === 'number' ? detail.pulsa : parseFloat(String(detail.pulsa)) || 0;
+                  const pulsaText = pulsaValue > 0 ? formatShareNumber(pulsaValue) : '';
+                  const apcValue = stdValue > 0 ? Math.floor(spdValue / stdValue) : 0;
+                  return `${index + 1}. ${detail.day_number}/${formatShareNumber(spdValue)}/${formatShareNumber(stdValue)}/${formatShareNumber(apcValue)}/${pulsaText}`;
               })
             : ['-'];
 
         return [...header, ...rows].join('\n');
     };
 
+    const copyWithFallback = (text: string): boolean => {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.top = '0';
+        textarea.style.left = '0';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        let success = false;
+        try {
+            success = document.execCommand('copy');
+        } catch (error) {
+            success = false;
+        }
+        document.body.removeChild(textarea);
+        return success;
+    };
+
     const handleCopyFormat = async () => {
         const text = buildShareText();
-        try {
-            if (navigator?.clipboard?.writeText) {
+        let copied = false;
+
+        if (window.isSecureContext && navigator?.clipboard?.writeText) {
+            try {
                 await navigator.clipboard.writeText(text);
-            } else {
-                window.prompt('Salin format laporan:', text);
+                copied = true;
+            } catch (error) {
+                copied = false;
             }
-            setCopyState('copied');
-            window.setTimeout(() => setCopyState('idle'), 2000);
-        } catch (error) {
-            setCopyState('error');
         }
+
+        if (!copied) {
+            copied = copyWithFallback(text);
+        }
+
+        if (!copied) {
+            window.prompt('Salin format laporan:', text);
+        }
+
+        setCopyState(copied ? 'copied' : 'error');
+        window.setTimeout(() => setCopyState('idle'), 2000);
     };
 
     return (
@@ -553,7 +619,7 @@ export default function CreateReport() {
                                         {data.details.length} hari diinput
                                     </span>
                                     <Button type="button" variant="outline" onClick={handleCopyFormat} className="w-full sm:w-auto">
-                                        {copyState === 'copied' ? 'Format Tersalin' : 'Salin Format'}
+                                        {copyState === 'copied' ? 'Format Tersalin' : copyState === 'error' ? 'Gagal Salin' : 'Salin Format'}
                                     </Button>
                                 </div>
                             </div>

@@ -70,9 +70,48 @@ class ShiftReportController extends Controller
     /**
      * Show the form for creating a new report.
      */
-    public function create()
+    public function create(Request $request)
     {
-        return Inertia::render('reports/create');
+        $user = $request->user()->load('employee.store');
+
+        $existingReport = null;
+        if ($user->employee) {
+            $defaultMonthYear = strtoupper(now()->format('F Y'));
+            $defaultShift = 3;
+
+            $report = ShiftReport::with(['details' => function ($query) {
+                $query->orderBy('day_number');
+            }])
+                ->where('store_id', $user->employee->store_id)
+                ->where('shift', $defaultShift)
+                ->where('month_year', $defaultMonthYear)
+                ->first();
+
+            if ($report) {
+                $existingReport = [
+                    'id' => $report->id,
+                    'month_year' => $report->month_year,
+                    'shift' => $report->shift,
+                    'report_date' => $report->report_date->format('Y-m-d'),
+                    'details' => $report->details->map(function ($detail) {
+                        return [
+                            'id' => $detail->id,
+                            'day_number' => $detail->day_number,
+                            'transaction_date' => $detail->transaction_date->format('Y-m-d'),
+                            'spd' => $detail->spd,
+                            'std' => $detail->std,
+                            'apc' => $detail->apc,
+                            'pulsa' => $detail->pulsa,
+                            'notes' => $detail->notes,
+                        ];
+                    }),
+                ];
+            }
+        }
+
+        return Inertia::render('reports/create', [
+            'existingReport' => $existingReport,
+        ]);
     }
 
     /**
@@ -112,28 +151,44 @@ class ShiftReportController extends Controller
         try {
             $user = $request->user()->load('employee.store');
             
-            // Create report
-            $report = ShiftReport::create([
-                'store_id' => $user->employee->store_id,
-                'user_id' => $user->id,
-                'report_date' => $validated['report_date'],
-                'shift' => $validated['shift'],
-                'month_year' => strtoupper($validated['month_year']),
-            ]);
+            $monthYear = strtoupper($validated['month_year']);
 
-            // Create details with auto-calculated APC
+            $report = ShiftReport::where('store_id', $user->employee->store_id)
+                ->where('shift', $validated['shift'])
+                ->where('month_year', $monthYear)
+                ->first();
+
+            if (!$report) {
+                $report = ShiftReport::create([
+                    'store_id' => $user->employee->store_id,
+                    'user_id' => $user->id,
+                    'report_date' => $validated['report_date'],
+                    'shift' => $validated['shift'],
+                    'month_year' => $monthYear,
+                ]);
+            } else {
+                $report->update([
+                    'report_date' => $validated['report_date'],
+                    'month_year' => $monthYear,
+                ]);
+            }
+
             foreach ($validated['details'] as $detail) {
                 $apc = $detail['std'] > 0 ? round($detail['spd'] / $detail['std'], 2) : 0;
-                
-                $report->details()->create([
-                    'day_number' => $detail['day_number'],
-                    'transaction_date' => $detail['transaction_date'],
-                    'spd' => $detail['spd'],
-                    'std' => $detail['std'],
-                    'apc' => $apc,
-                    'pulsa' => $detail['pulsa'] ?? 0,
-                    'notes' => $detail['notes'] ?? null,
-                ]);
+
+                $report->details()->updateOrCreate(
+                    [
+                        'day_number' => $detail['day_number'],
+                    ],
+                    [
+                        'transaction_date' => $detail['transaction_date'],
+                        'spd' => $detail['spd'],
+                        'std' => $detail['std'],
+                        'apc' => $apc,
+                        'pulsa' => $detail['pulsa'] ?? 0,
+                        'notes' => $detail['notes'] ?? null,
+                    ]
+                );
             }
 
             DB::commit();
