@@ -1,13 +1,29 @@
 import * as React from 'react';
 import { SidebarInset } from '@/components/ui/sidebar';
+import { cn } from '@/lib/utils';
 
 type Props = React.ComponentProps<'main'> & {
     variant?: 'header' | 'sidebar';
 };
 
-export function AppContent({ variant = 'header', children, ...props }: Props) {
+export function AppContent({
+    variant = 'header',
+    children,
+    className,
+    ...props
+}: Props) {
     if (variant === 'sidebar') {
-        return <SidebarInset {...props}>{children}</SidebarInset>;
+        return (
+            <SidebarInset
+                {...props}
+                className={cn(
+                    "relative overflow-hidden bg-white backdrop-blur-xl",
+                    className
+                )}
+            >
+                {children}
+            </SidebarInset>
+        );
     }
 
     return (

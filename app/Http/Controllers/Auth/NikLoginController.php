@@ -18,7 +18,7 @@ class NikLoginController extends Controller
      */
     public function create()
     {
-        return Inertia::render('auth/nik-login');
+        return Inertia::render('auth/login');
     }
 
     /**

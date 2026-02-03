@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { home } from '@/routes';
+import { dashboard } from '@/routes';
 
 export default function AuthCardLayout({
     children,
@@ -20,24 +20,24 @@ export default function AuthCardLayout({
     description?: string;
 }>) {
     return (
-        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-6 md:p-10">
+        <div className="app-surface flex min-h-svh flex-col items-center justify-center gap-6 p-4 sm:p-6 md:p-10">
             <div className="flex w-full max-w-md flex-col gap-6">
                 <Link
-                    href={home()}
+                    href={dashboard()}
                     className="flex items-center gap-2 self-center font-medium"
                 >
-                    <div className="flex h-9 w-9 items-center justify-center">
-                        <AppLogoIcon className="size-9 fill-current text-black dark:text-white" />
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-red-600 via-red-500 to-blue-600 text-white shadow-md">
+                        <AppLogoIcon className="size-7 fill-current text-white" />
                     </div>
                 </Link>
 
                 <div className="flex flex-col gap-6">
-                    <Card className="rounded-xl">
-                        <CardHeader className="px-10 pt-8 pb-0 text-center">
-                            <CardTitle className="text-xl">{title}</CardTitle>
+                    <Card className="rounded-3xl border border-white/80 bg-white/85 backdrop-blur">
+                        <CardHeader className="px-6 pb-0 pt-6 text-center sm:px-10 sm:pt-8">
+                            <CardTitle className="text-lg sm:text-xl">{title}</CardTitle>
                             <CardDescription>{description}</CardDescription>
                         </CardHeader>
-                        <CardContent className="px-10 py-8">
+                        <CardContent className="px-6 py-6 sm:px-10 sm:py-8">
                             {children}
                         </CardContent>
                     </Card>

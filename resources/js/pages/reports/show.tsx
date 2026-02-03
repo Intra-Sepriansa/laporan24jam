@@ -3,8 +3,10 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Edit, Trash2, Download, Printer, FileText } from 'lucide-react';
+import { ArrowLeft, Edit, Trash2, Download, Printer } from 'lucide-react';
 import { formatCurrency, formatNumber, formatDate } from '@/lib/utils';
+import { index, edit, destroy } from '@/routes/reports';
+import { pdf, excel } from '@/routes/reports/export';
 
 interface Detail {
     id: number;
@@ -42,7 +44,7 @@ interface Props {
 export default function ShowReport({ report }: Props) {
     const handleDelete = () => {
         if (confirm('Apakah Anda yakin ingin menghapus laporan ini?')) {
-            router.delete(route('reports.destroy', report.id));
+            router.delete(destroy.url({ report: report.id }));
         }
     };
 
@@ -56,45 +58,45 @@ export default function ShowReport({ report }: Props) {
 
             <div className="space-y-6 print:space-y-4">
                 {/* Header - Hide on print */}
-                <div className="flex items-center justify-between print:hidden">
-                    <div className="flex items-center gap-4">
-                        <Button variant="outline" asChild>
-                            <a href={route('reports.index')}>
+                <div className="flex flex-col gap-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                        <Button variant="outline" asChild className="w-fit">
+                            <a href={index.url()}>
                                 <ArrowLeft className="w-4 h-4 mr-2" />
                                 Kembali
                             </a>
                         </Button>
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Detail Laporan</h1>
+                            <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Detail Laporan</h1>
                             <p className="text-gray-600 mt-1">
                                 {report.month_year} - Shift {report.shift}
                             </p>
                         </div>
                     </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" onClick={handlePrint}>
+                    <div className="flex w-full gap-2 overflow-x-auto pb-1 sm:w-auto sm:flex-wrap sm:justify-end sm:overflow-visible">
+                        <Button variant="outline" onClick={handlePrint} className="shrink-0 whitespace-nowrap">
                             <Printer className="w-4 h-4 mr-2" />
                             Print
                         </Button>
-                        <Button variant="outline" asChild>
-                            <a href={route('reports.export.pdf', report.id)}>
+                        <Button variant="outline" asChild className="shrink-0 whitespace-nowrap">
+                            <a href={pdf.url({ report: report.id })}>
                                 <Download className="w-4 h-4 mr-2" />
                                 PDF
                             </a>
                         </Button>
-                        <Button variant="outline" asChild>
-                            <a href={route('reports.export.excel', report.id)}>
+                        <Button variant="outline" asChild className="shrink-0 whitespace-nowrap">
+                            <a href={excel.url({ report: report.id })}>
                                 <Download className="w-4 h-4 mr-2" />
                                 Excel
                             </a>
                         </Button>
-                        <Button variant="outline" asChild>
-                            <a href={route('reports.edit', report.id)}>
+                        <Button variant="outline" asChild className="shrink-0 whitespace-nowrap">
+                            <a href={edit.url({ report: report.id })}>
                                 <Edit className="w-4 h-4 mr-2" />
                                 Edit
                             </a>
                         </Button>
-                        <Button variant="destructive" onClick={handleDelete}>
+                        <Button variant="destructive" onClick={handleDelete} className="shrink-0 whitespace-nowrap">
                             <Trash2 className="w-4 h-4 mr-2" />
                             Hapus
                         </Button>
@@ -111,9 +113,9 @@ export default function ShowReport({ report }: Props) {
                 {/* Report Info */}
                 <Card className="print:shadow-none print:border-2">
                     <CardHeader className="print:pb-2">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
-                                <CardTitle className="text-2xl">
+                                <CardTitle className="text-xl sm:text-2xl">
                                     {report.month_year}
                                 </CardTitle>
                                 <CardDescription className="mt-2">
@@ -127,7 +129,7 @@ export default function ShowReport({ report }: Props) {
                                     </div>
                                 </CardDescription>
                             </div>
-                            <Badge variant="default" className="text-lg px-4 py-2 print:hidden">
+                            <Badge variant="default" className="w-fit text-sm px-3 py-1 print:hidden sm:text-lg sm:px-4 sm:py-2">
                                 Shift {report.shift}
                             </Badge>
                         </div>
@@ -143,7 +145,7 @@ export default function ShowReport({ report }: Props) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-2xl font-bold text-primary print:text-xl">
+                            <p className="text-xl font-bold text-primary print:text-xl sm:text-2xl">
                                 {formatCurrency(report.totals.spd)}
                             </p>
                         </CardContent>
@@ -156,7 +158,7 @@ export default function ShowReport({ report }: Props) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-2xl font-bold text-secondary print:text-xl">
+                            <p className="text-xl font-bold text-secondary print:text-xl sm:text-2xl">
                                 {formatNumber(report.totals.std)}
                             </p>
                         </CardContent>
@@ -169,7 +171,7 @@ export default function ShowReport({ report }: Props) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-2xl font-bold text-accent print:text-xl">
+                            <p className="text-xl font-bold text-accent print:text-xl sm:text-2xl">
                                 {formatCurrency(report.totals.average_apc)}
                             </p>
                         </CardContent>
@@ -182,7 +184,7 @@ export default function ShowReport({ report }: Props) {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-2xl font-bold text-green-600 print:text-xl">
+                            <p className="text-xl font-bold text-green-600 print:text-xl sm:text-2xl">
                                 {formatCurrency(report.totals.pulsa)}
                             </p>
                         </CardContent>
@@ -198,7 +200,7 @@ export default function ShowReport({ report }: Props) {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="overflow-x-auto">
+                        <div className="hidden md:block overflow-x-auto">
                             <table className="w-full border-collapse text-sm">
                                 <thead>
                                     <tr className="bg-gray-50 border-b-2 print:bg-gray-100">
@@ -241,6 +243,77 @@ export default function ShowReport({ report }: Props) {
                                     </tr>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <div className="md:hidden space-y-4">
+                            {report.details.map((detail) => (
+                                <div
+                                    key={detail.id}
+                                    className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-sm font-semibold text-slate-900">
+                                            Hari {detail.day_number}
+                                        </span>
+                                        <span className="text-xs text-slate-500">
+                                            {formatDate(detail.transaction_date)}
+                                        </span>
+                                    </div>
+                                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
+                                        <div className="space-y-1">
+                                            <p className="text-slate-500">SPD</p>
+                                            <p className="font-semibold text-slate-900">
+                                                {formatCurrency(detail.spd)}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-slate-500">STD</p>
+                                            <p className="font-semibold text-slate-900">
+                                                {formatNumber(detail.std)}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-slate-500">APC</p>
+                                            <p className="font-semibold text-amber-600">
+                                                {formatCurrency(detail.apc)}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-slate-500">Pulsa</p>
+                                            <p className="font-semibold text-emerald-600">
+                                                {formatCurrency(detail.pulsa)}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
+                                <div className="flex items-center justify-between text-slate-700">
+                                    <span>Total SPD</span>
+                                    <span className="font-semibold text-slate-900">
+                                        {formatCurrency(report.totals.spd)}
+                                    </span>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between text-slate-700">
+                                    <span>Total STD</span>
+                                    <span className="font-semibold text-slate-900">
+                                        {formatNumber(report.totals.std)}
+                                    </span>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between text-slate-700">
+                                    <span>APC</span>
+                                    <span className="font-semibold text-amber-600">
+                                        {formatCurrency(report.totals.average_apc)}
+                                    </span>
+                                </div>
+                                <div className="mt-2 flex items-center justify-between text-slate-700">
+                                    <span>Total Pulsa</span>
+                                    <span className="font-semibold text-emerald-600">
+                                        {formatCurrency(report.totals.pulsa)}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

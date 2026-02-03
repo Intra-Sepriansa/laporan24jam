@@ -8,6 +8,8 @@ import { Head, useForm } from '@inertiajs/react';
 import { Store, User, Lock, MapPin } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import { login } from '@/routes';
+import { byNik } from '@/routes/employee';
 
 interface EmployeeData {
     found: boolean;
@@ -44,7 +46,7 @@ export default function NikLogin() {
         setNikError('');
 
         try {
-            const response = await axios.post<EmployeeData>(route('employee.by-nik'), { nik });
+            const response = await axios.post<EmployeeData>(byNik.url(), { nik });
             
             if (response.data.found) {
                 setEmployeeData(response.data);
@@ -61,38 +63,38 @@ export default function NikLogin() {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('login'));
+        post(login.url());
     };
 
     return (
         <>
             <Head title="Login - Sistem Laporan Shift 3" />
 
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-blue-50 p-4">
+            <div className="min-h-svh flex items-center justify-center bg-gradient-to-br from-red-50 via-white to-blue-50 p-4">
                 <div className="w-full max-w-md">
                     {/* Logo & Header */}
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-2xl mb-4 shadow-lg">
-                            <Store className="w-10 h-10 text-white" />
+                    <div className="text-center mb-6 sm:mb-8">
+                        <div className="inline-flex items-center justify-center w-14 h-14 bg-primary rounded-2xl mb-3 shadow-lg sm:w-20 sm:h-20 sm:mb-4">
+                            <Store className="w-7 h-7 text-white sm:w-10 sm:h-10" />
                         </div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                        <h1 className="text-xl font-bold text-gray-900 mb-2 sm:text-3xl">
                             ALFAMART
                         </h1>
-                        <p className="text-lg font-semibold text-primary mb-1">
+                        <p className="text-sm font-semibold text-primary mb-1 sm:text-lg">
                             Sistem Laporan Shift 3
                         </p>
-                        <p className="text-sm text-gray-600">
+                        <p className="hidden text-sm text-gray-600 sm:block">
                             Belanja Puas, Harga Pas!
                         </p>
                     </div>
 
                     {/* Login Card */}
                     <Card className="shadow-xl border-2">
-                        <CardHeader className="space-y-1 pb-4">
-                            <CardTitle className="text-2xl font-bold text-center">
+                        <CardHeader className="space-y-1 pb-3 pt-5 sm:pb-4">
+                            <CardTitle className="text-lg font-bold text-center sm:text-2xl">
                                 Masuk ke Sistem
                             </CardTitle>
-                            <CardDescription className="text-center">
+                            <CardDescription className="text-center text-xs sm:text-sm">
                                 Masukkan NIK dan password Anda
                             </CardDescription>
                         </CardHeader>
@@ -101,7 +103,7 @@ export default function NikLogin() {
                             <form onSubmit={submit} className="space-y-4">
                                 {/* NIK Input */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="nik" className="flex items-center gap-2">
+                                    <Label htmlFor="nik" className="flex items-center gap-2 text-xs sm:text-base">
                                         <User className="w-4 h-4" />
                                         NIK (8 digit)
                                     </Label>
@@ -116,7 +118,7 @@ export default function NikLogin() {
                                             }}
                                             placeholder="Contoh: 14085061"
                                             maxLength={8}
-                                            className={`pr-10 ${errors.nik || nikError ? 'border-red-500' : ''}`}
+                                            className={`h-10 text-xs pr-10 sm:h-12 sm:text-base ${errors.nik || nikError ? 'border-red-500' : ''}`}
                                             autoFocus
                                             required
                                         />
@@ -133,16 +135,16 @@ export default function NikLogin() {
 
                                 {/* Auto-filled Employee Info */}
                                 {employeeData?.found && (
-                                    <div className="p-4 bg-green-50 border-2 border-green-200 rounded-lg space-y-2">
+                                    <div className="p-3 bg-green-50 border-2 border-green-200 rounded-lg space-y-2">
                                         <div className="flex items-center gap-2 text-green-800">
                                             <User className="w-4 h-4" />
-                                            <span className="font-semibold">{employeeData.name}</span>
+                                            <span className="text-sm font-semibold sm:text-base">{employeeData.name}</span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-green-700 text-sm">
+                                        <div className="flex items-center gap-2 text-green-700 text-xs sm:text-sm">
                                             <Store className="w-4 h-4" />
                                             <span>{employeeData.store_code} - {employeeData.store_name}</span>
                                         </div>
-                                        <div className="flex items-center gap-2 text-green-700 text-sm">
+                                        <div className="flex items-center gap-2 text-green-700 text-xs sm:text-sm">
                                             <MapPin className="w-4 h-4" />
                                             <span>{employeeData.area}</span>
                                         </div>
@@ -151,7 +153,7 @@ export default function NikLogin() {
 
                                 {/* Password Input */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="password" className="flex items-center gap-2">
+                                    <Label htmlFor="password" className="flex items-center gap-2 text-xs sm:text-base">
                                         <Lock className="w-4 h-4" />
                                         Password
                                     </Label>
@@ -161,13 +163,13 @@ export default function NikLogin() {
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
                                         placeholder="Format: TB56#XXX"
-                                        className={errors.password ? 'border-red-500' : ''}
+                                        className={`h-10 text-xs sm:h-12 sm:text-base ${errors.password ? 'border-red-500' : ''}`}
                                         required
                                     />
                                     {errors.password && (
                                         <p className="text-sm text-red-600">{errors.password}</p>
                                     )}
-                                    <p className="text-xs text-gray-500">
+                                    <p className="text-[0.7rem] text-gray-500 sm:text-xs">
                                         Format: KODE_TOKO#3_DIGIT_TERAKHIR_NIK
                                     </p>
                                 </div>
@@ -181,7 +183,7 @@ export default function NikLogin() {
                                     />
                                     <Label
                                         htmlFor="remember"
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                        className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer sm:text-sm"
                                     >
                                         Ingat saya
                                     </Label>
@@ -190,7 +192,7 @@ export default function NikLogin() {
                                 {/* Submit Button */}
                                 <Button
                                     type="submit"
-                                    className="w-full h-12 text-base font-semibold"
+                                    className="w-full h-11 text-sm font-semibold sm:h-12 sm:text-base"
                                     disabled={processing || isCheckingNik || !employeeData?.found}
                                 >
                                     {processing ? (
@@ -205,7 +207,7 @@ export default function NikLogin() {
                             </form>
 
                             {/* Footer Info */}
-                            <div className="mt-6 pt-6 border-t text-center">
+                            <div className="mt-5 pt-4 border-t text-center hidden sm:block">
                                 <p className="text-xs text-gray-500">
                                     © 2026 Alfamart. Sistem Laporan Shift 3
                                 </p>
@@ -217,7 +219,7 @@ export default function NikLogin() {
                     </Card>
 
                     {/* Help Text */}
-                    <div className="mt-6 text-center">
+                    <div className="mt-5 text-center hidden sm:block">
                         <p className="text-sm text-gray-600">
                             Butuh bantuan? Hubungi administrator toko
                         </p>

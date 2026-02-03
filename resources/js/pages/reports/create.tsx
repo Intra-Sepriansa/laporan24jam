@@ -1,13 +1,15 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Save, Plus, Trash2, Calendar } from 'lucide-react';
+import { ArrowLeft, Save, Trash2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { formatCurrency, formatNumber } from '@/lib/utils';
+import { index, store as storeRoute } from '@/routes/reports';
+import type { SharedData } from '@/types';
 
 interface DetailRow {
     day_number: number;
@@ -19,43 +21,77 @@ interface DetailRow {
     notes: string;
 }
 
+const toLocalDateInput = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+const createDetailRow = (date: Date): DetailRow => ({
+    day_number: date.getDate(),
+    transaction_date: toLocalDateInput(date),
+    spd: 0,
+    std: 0,
+    apc: 0,
+    pulsa: 0,
+    notes: '',
+});
+
+const isRowEmpty = (detail: DetailRow): boolean =>
+    detail.spd === 0 &&
+    detail.std === 0 &&
+    (detail.pulsa ?? 0) === 0 &&
+    (detail.notes ?? '').trim() === '';
+
 export default function CreateReport() {
+    const { auth } = usePage<SharedData>().props;
     const currentDate = new Date();
     const currentMonth = currentDate.toLocaleString('en-US', { month: 'long', year: 'numeric' }).toUpperCase();
     const currentYear = currentDate.getFullYear();
     const currentMonthNumber = currentDate.getMonth() + 1;
     
-    const [daysInMonth, setDaysInMonth] = useState(31);
+    const maxDays = 30;
+    const [daysInMonth, setDaysInMonth] = useState(maxDays);
     const [selectedMonth, setSelectedMonth] = useState(currentMonthNumber);
     const [selectedYear, setSelectedYear] = useState(currentYear);
 
     const { data, setData, post, processing, errors } = useForm({
         month_year: currentMonth,
         shift: 3,
-        report_date: currentDate.toISOString().split('T')[0],
+        report_date: toLocalDateInput(currentDate),
         details: [] as DetailRow[],
     });
 
     // Initialize details when month changes
     useEffect(() => {
-        const days = new Date(selectedYear, selectedMonth, 0).getDate();
+        const daysInSelectedMonth = new Date(
+            selectedYear,
+            selectedMonth,
+            0,
+        ).getDate();
+        const days = Math.min(daysInSelectedMonth, maxDays);
         setDaysInMonth(days);
-        
-        const newDetails: DetailRow[] = [];
-        for (let i = 1; i <= days; i++) {
-            const date = new Date(selectedYear, selectedMonth - 1, i);
-            newDetails.push({
-                day_number: i,
-                transaction_date: date.toISOString().split('T')[0],
-                spd: 0,
-                std: 0,
-                apc: 0,
-                pulsa: 0,
-                notes: '',
-            });
-        }
-        setData('details', newDetails);
+
+        const firstDayDate = new Date(selectedYear, selectedMonth - 1, 1);
+        setData('details', [createDetailRow(firstDayDate)]);
     }, [selectedMonth, selectedYear]);
+
+    // Auto-append an empty row after the last filled one
+    useEffect(() => {
+        if (data.details.length === 0) return;
+        if (data.details.some(isRowEmpty)) return;
+
+        const usedDays = new Set(data.details.map((detail) => detail.day_number));
+        let nextDay = 1;
+        while (nextDay <= daysInMonth && usedDays.has(nextDay)) {
+            nextDay += 1;
+        }
+        if (nextDay > daysInMonth) return;
+
+        const date = new Date(selectedYear, selectedMonth - 1, nextDay);
+        setData('details', [...data.details, createDetailRow(date)]);
+    }, [data.details, daysInMonth, selectedMonth, selectedYear]);
 
     const handleMonthChange = (month: string) => {
         const monthNum = parseInt(month);
@@ -66,11 +102,26 @@ export default function CreateReport() {
         setData('month_year', `${monthNames[monthNum - 1]} ${selectedYear}`);
     };
 
-    const handleDetailChange = (index: number, field: keyof DetailRow, value: any) => {
+    const handleDetailChange = (
+        index: number,
+        field: keyof DetailRow,
+        value: any,
+    ) => {
         const newDetails = [...data.details];
-        newDetails[index] = {
+        const updatedDetail = {
             ...newDetails[index],
             [field]: value,
+        };
+
+        if (field === 'transaction_date' && typeof value === 'string') {
+            const date = new Date(`${value}T00:00:00`);
+            if (!Number.isNaN(date.getTime())) {
+                updatedDetail.day_number = date.getDate();
+            }
+        }
+
+        newDetails[index] = {
+            ...updatedDetail,
         };
 
         // Auto-calculate APC
@@ -80,6 +131,12 @@ export default function CreateReport() {
             newDetails[index].apc = std > 0 ? Math.round((spd / std) * 100) / 100 : 0;
         }
 
+        setData('details', newDetails);
+    };
+
+    const handleRemoveDay = (index: number) => {
+        if (data.details.length <= 1) return;
+        const newDetails = data.details.filter((_, rowIndex) => rowIndex !== index);
         setData('details', newDetails);
     };
 
@@ -97,10 +154,59 @@ export default function CreateReport() {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('reports.store'));
+        post(storeRoute.url());
     };
 
     const totals = calculateTotals();
+    const minDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-01`;
+    const maxDate = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+    const storeInfo = auth?.user?.employee?.store;
+    const storeCode = storeInfo?.code ?? '-';
+    const storeName = storeInfo?.name ?? '-';
+    const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle');
+
+    const formatShareNumber = (value: number): string => formatNumber(Math.round(value));
+
+    const buildShareText = (): string => {
+        const filledDetails = data.details.filter((detail) => !isRowEmpty(detail));
+        const header = [
+            `*Format laporan shift ${data.shift}*`,
+            `*KODE : ${storeCode}*`,
+            `*TOKO : ${storeName}*`,
+            `*BULAN : ${data.month_year}*`,
+            '',
+            'No / Tanggal / SPD / STD / APC / PULSA',
+        ];
+
+        const rows = filledDetails.length
+            ? filledDetails.map((detail, index) => {
+                  const pulsaText =
+                      detail.pulsa && detail.pulsa > 0
+                          ? formatShareNumber(detail.pulsa)
+                          : '';
+                  const apcValue =
+                      detail.std > 0 ? Math.floor(detail.spd / detail.std) : 0;
+                  return `${index + 1}. ${detail.day_number}/${formatShareNumber(detail.spd)}/${formatShareNumber(detail.std)}/${formatShareNumber(apcValue)}/${pulsaText}`;
+              })
+            : ['-'];
+
+        return [...header, ...rows].join('\n');
+    };
+
+    const handleCopyFormat = async () => {
+        const text = buildShareText();
+        try {
+            if (navigator?.clipboard?.writeText) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                window.prompt('Salin format laporan:', text);
+            }
+            setCopyState('copied');
+            window.setTimeout(() => setCopyState('idle'), 2000);
+        } catch (error) {
+            setCopyState('error');
+        }
+    };
 
     return (
         <AppLayout>
@@ -108,15 +214,15 @@ export default function CreateReport() {
 
             <div className="space-y-6">
                 {/* Header */}
-                <div className="flex items-center gap-4">
-                    <Button variant="outline" asChild>
-                        <a href={route('reports.index')}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                    <Button variant="outline" asChild className="w-full sm:w-fit">
+                        <a href={index.url()}>
                             <ArrowLeft className="w-4 h-4 mr-2" />
                             Kembali
                         </a>
                     </Button>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Buat Laporan Baru</h1>
+                        <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">Buat Laporan Baru</h1>
                         <p className="text-gray-600 mt-1">
                             Isi data laporan shift bulanan
                         </p>
@@ -201,11 +307,11 @@ export default function CreateReport() {
                         <CardHeader>
                             <CardTitle>Data Harian</CardTitle>
                             <CardDescription>
-                                Isi data penjualan untuk setiap hari ({daysInMonth} hari)
+                                Isi data penjualan untuk hari yang diinput (maks {daysInMonth} hari)
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="overflow-x-auto">
+                            <div className="hidden md:block overflow-x-auto">
                                 <table className="w-full border-collapse">
                                     <thead>
                                         <tr className="bg-gray-50 border-b-2">
@@ -215,6 +321,7 @@ export default function CreateReport() {
                                             <th className="p-3 text-right font-semibold">STD</th>
                                             <th className="p-3 text-right font-semibold">APC (Rp)</th>
                                             <th className="p-3 text-right font-semibold">Pulsa (Rp)</th>
+                                            <th className="p-3 text-center font-semibold">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -227,7 +334,8 @@ export default function CreateReport() {
                                                         value={detail.transaction_date}
                                                         onChange={(e) => handleDetailChange(index, 'transaction_date', e.target.value)}
                                                         className="w-40"
-                                                        required
+                                                        min={minDate}
+                                                        max={maxDate}
                                                     />
                                                 </td>
                                                 <td className="p-2">
@@ -238,7 +346,6 @@ export default function CreateReport() {
                                                         className="text-right"
                                                         min="0"
                                                         step="0.01"
-                                                        required
                                                     />
                                                 </td>
                                                 <td className="p-2">
@@ -248,7 +355,6 @@ export default function CreateReport() {
                                                         onChange={(e) => handleDetailChange(index, 'std', parseInt(e.target.value) || 0)}
                                                         className="text-right"
                                                         min="0"
-                                                        required
                                                     />
                                                 </td>
                                                 <td className="p-2 text-right font-semibold text-accent">
@@ -263,6 +369,18 @@ export default function CreateReport() {
                                                         min="0"
                                                         step="0.01"
                                                     />
+                                                </td>
+                                                <td className="p-2 text-center">
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() => handleRemoveDay(index)}
+                                                        disabled={data.details.length <= 1}
+                                                        aria-label="Hapus hari"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -281,9 +399,163 @@ export default function CreateReport() {
                                             <td className="p-3 text-right text-green-600">
                                                 {formatCurrency(totals.pulsa)}
                                             </td>
+                                            <td />
                                         </tr>
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <div className="md:hidden space-y-4">
+                                {data.details.map((detail, index) => {
+                                    const rowKey = `${detail.day_number}-${index}`;
+
+                                    return (
+                                        <div
+                                            key={rowKey}
+                                            className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm font-semibold text-slate-900">
+                                                    Hari {detail.day_number}
+                                                </span>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => handleRemoveDay(index)}
+                                                    disabled={data.details.length <= 1}
+                                                    aria-label="Hapus hari"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+
+                                            <div className="mt-4 grid gap-4">
+                                                <div className="space-y-2">
+                                                    <Label htmlFor={`date-${rowKey}`}>Tanggal</Label>
+                                                    <Input
+                                                        id={`date-${rowKey}`}
+                                                        type="date"
+                                                        value={detail.transaction_date}
+                                                        onChange={(e) =>
+                                                            handleDetailChange(
+                                                                index,
+                                                                'transaction_date',
+                                                                e.target.value,
+                                                            )
+                                                        }
+                                                        min={minDate}
+                                                        max={maxDate}
+                                                        className="w-full"
+                                                    />
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor={`spd-${rowKey}`}>SPD (Rp)</Label>
+                                                        <Input
+                                                            id={`spd-${rowKey}`}
+                                                            type="number"
+                                                            value={detail.spd || ''}
+                                                            onChange={(e) =>
+                                                                handleDetailChange(
+                                                                    index,
+                                                                    'spd',
+                                                                    parseFloat(e.target.value) || 0,
+                                                                )
+                                                            }
+                                                            className="text-right"
+                                                            min="0"
+                                                            step="0.01"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor={`std-${rowKey}`}>STD</Label>
+                                                        <Input
+                                                            id={`std-${rowKey}`}
+                                                            type="number"
+                                                            value={detail.std || ''}
+                                                            onChange={(e) =>
+                                                                handleDetailChange(
+                                                                    index,
+                                                                    'std',
+                                                                    parseInt(e.target.value) || 0,
+                                                                )
+                                                            }
+                                                            className="text-right"
+                                                            min="0"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <div className="space-y-2">
+                                                        <Label>APC (Rp)</Label>
+                                                        <div className="h-10 rounded-xl border border-slate-200 bg-slate-50 px-3 text-right text-sm font-semibold text-amber-600 flex items-center justify-end">
+                                                            {formatCurrency(detail.apc)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor={`pulsa-${rowKey}`}>Pulsa (Rp)</Label>
+                                                        <Input
+                                                            id={`pulsa-${rowKey}`}
+                                                            type="number"
+                                                            value={detail.pulsa || ''}
+                                                            onChange={(e) =>
+                                                                handleDetailChange(
+                                                                    index,
+                                                                    'pulsa',
+                                                                    parseFloat(e.target.value) || 0,
+                                                                )
+                                                            }
+                                                            className="text-right"
+                                                            min="0"
+                                                            step="0.01"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+
+                                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm">
+                                    <div className="flex items-center justify-between text-slate-700">
+                                        <span>Total SPD</span>
+                                        <span className="font-semibold text-slate-900">
+                                            {formatCurrency(totals.spd)}
+                                        </span>
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between text-slate-700">
+                                        <span>Total STD</span>
+                                        <span className="font-semibold text-slate-900">
+                                            {formatNumber(totals.std)}
+                                        </span>
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between text-slate-700">
+                                        <span>APC</span>
+                                        <span className="font-semibold text-amber-600">
+                                            {formatCurrency(totals.avgApc)}
+                                        </span>
+                                    </div>
+                                    <div className="mt-2 flex items-center justify-between text-slate-700">
+                                        <span>Total Pulsa</span>
+                                        <span className="font-semibold text-emerald-600">
+                                            {formatCurrency(totals.pulsa)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                                    <span className="text-xs text-gray-500 sm:text-sm">
+                                        {data.details.length} hari diinput
+                                    </span>
+                                    <Button type="button" variant="outline" onClick={handleCopyFormat} className="w-full sm:w-auto">
+                                        {copyState === 'copied' ? 'Format Tersalin' : 'Salin Format'}
+                                    </Button>
+                                </div>
                             </div>
 
                             {errors.details && (
@@ -293,13 +565,13 @@ export default function CreateReport() {
                     </Card>
 
                     {/* Submit Button */}
-                    <div className="flex justify-end gap-4">
-                        <Button type="button" variant="outline" asChild>
-                            <a href={route('reports.index')}>
+                    <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4">
+                        <Button type="button" variant="outline" asChild className="w-full sm:w-auto">
+                            <a href={index.url()}>
                                 Batal
                             </a>
                         </Button>
-                        <Button type="submit" disabled={processing} size="lg">
+                        <Button type="submit" disabled={processing} size="lg" className="w-full sm:w-auto">
                             <Save className="w-5 h-5 mr-2" />
                             {processing ? 'Menyimpan...' : 'Simpan Laporan'}
                         </Button>

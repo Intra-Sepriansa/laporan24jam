@@ -17,6 +17,19 @@ class ShiftReportController extends Controller
     {
         $user = $request->user()->load('employee.store');
         
+        // Check if user has employee
+        if (!$user->employee) {
+            return Inertia::render('reports/index', [
+                'reports' => [
+                    'data' => [],
+                    'links' => [],
+                    'current_page' => 1,
+                    'last_page' => 1,
+                ],
+                'filters' => $request->only(['month_year', 'shift']),
+            ]);
+        }
+        
         $query = ShiftReport::with(['user', 'details'])
             ->where('store_id', $user->employee->store_id);
         
@@ -67,12 +80,26 @@ class ShiftReportController extends Controller
      */
     public function store(Request $request)
     {
+        $details = collect($request->input('details', []))
+            ->filter(function ($detail) {
+                $spd = (float) ($detail['spd'] ?? 0);
+                $std = (int) ($detail['std'] ?? 0);
+                $pulsa = (float) ($detail['pulsa'] ?? 0);
+                $notes = trim((string) ($detail['notes'] ?? ''));
+
+                return $spd > 0 || $std > 0 || $pulsa > 0 || $notes !== '';
+            })
+            ->values()
+            ->all();
+
+        $request->merge(['details' => $details]);
+
         $validated = $request->validate([
             'month_year' => 'required|string',
             'shift' => 'required|integer|between:1,3',
             'report_date' => 'required|date',
             'details' => 'required|array|min:1',
-            'details.*.day_number' => 'required|integer|between:1,31',
+            'details.*.day_number' => 'required|integer|between:1,30',
             'details.*.transaction_date' => 'required|date',
             'details.*.spd' => 'required|numeric|min:0',
             'details.*.std' => 'required|integer|min:0',
@@ -126,14 +153,14 @@ class ShiftReportController extends Controller
     /**
      * Display the specified report.
      */
-    public function show(ShiftReport $report)
+    public function show(Request $request, ShiftReport $report)
     {
         $report->load(['user', 'store', 'details' => function ($query) {
             $query->orderBy('day_number');
         }]);
         
         // Check authorization
-        if ($report->store_id !== auth()->user()->employee->store_id) {
+        if ($report->store_id !== $request->user()->employee->store_id) {
             abort(403, 'Unauthorized');
         }
         
@@ -172,14 +199,14 @@ class ShiftReportController extends Controller
     /**
      * Show the form for editing the specified report.
      */
-    public function edit(ShiftReport $report)
+    public function edit(Request $request, ShiftReport $report)
     {
         $report->load(['details' => function ($query) {
             $query->orderBy('day_number');
         }]);
         
         // Check authorization
-        if ($report->store_id !== auth()->user()->employee->store_id) {
+        if ($report->store_id !== $request->user()->employee->store_id) {
             abort(403, 'Unauthorized');
         }
         
@@ -211,17 +238,31 @@ class ShiftReportController extends Controller
     public function update(Request $request, ShiftReport $report)
     {
         // Check authorization
-        if ($report->store_id !== auth()->user()->employee->store_id) {
+        if ($report->store_id !== $request->user()->employee->store_id) {
             abort(403, 'Unauthorized');
         }
-        
+
+        $details = collect($request->input('details', []))
+            ->filter(function ($detail) {
+                $spd = (float) ($detail['spd'] ?? 0);
+                $std = (int) ($detail['std'] ?? 0);
+                $pulsa = (float) ($detail['pulsa'] ?? 0);
+                $notes = trim((string) ($detail['notes'] ?? ''));
+
+                return $spd > 0 || $std > 0 || $pulsa > 0 || $notes !== '';
+            })
+            ->values()
+            ->all();
+
+        $request->merge(['details' => $details]);
+
         $validated = $request->validate([
             'month_year' => 'required|string',
             'shift' => 'required|integer|between:1,3',
             'report_date' => 'required|date',
             'details' => 'required|array|min:1',
             'details.*.id' => 'nullable|exists:shift_report_details,id',
-            'details.*.day_number' => 'required|integer|between:1,31',
+            'details.*.day_number' => 'required|integer|between:1,30',
             'details.*.transaction_date' => 'required|date',
             'details.*.spd' => 'required|numeric|min:0',
             'details.*.std' => 'required|integer|min:0',
@@ -274,10 +315,10 @@ class ShiftReportController extends Controller
     /**
      * Remove the specified report from storage.
      */
-    public function destroy(ShiftReport $report)
+    public function destroy(Request $request, ShiftReport $report)
     {
         // Check authorization
-        if ($report->store_id !== auth()->user()->employee->store_id) {
+        if ($report->store_id !== $request->user()->employee->store_id) {
             abort(403, 'Unauthorized');
         }
         

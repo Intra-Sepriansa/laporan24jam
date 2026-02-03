@@ -27,7 +27,7 @@ export function NavFooter({
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton
                                 asChild
-                                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-300 dark:hover:text-neutral-100"
+                                className="h-10 rounded-xl border border-transparent bg-white/60 px-3 text-slate-600 shadow-sm transition-all hover:-translate-y-0.5 hover:border-white hover:bg-white hover:text-slate-900"
                             >
                                 <a
                                     href={toUrl(item.href)}

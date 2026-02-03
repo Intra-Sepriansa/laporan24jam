@@ -3,13 +3,18 @@
 @import 'tw-animate-css';
 
 @source '../views';
+@source '../js';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
 
 @theme {
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Space Grotesk', 'Nunito', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
+    --font-display:
+        'Bricolage Grotesque', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
 
@@ -70,38 +75,38 @@
     --alfamart-yellow: oklch(0.828 0.189 84.429); /* #FFB81C */
     
     /* Theme Colors */
-    --background: oklch(1 0 0);
+    --background: oklch(0.985 0.015 88);
     --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
+    --card: oklch(0.995 0.01 85);
     --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
+    --popover: oklch(0.995 0.01 85);
     --popover-foreground: oklch(0.145 0 0);
     --primary: var(--alfamart-red); /* Use Alfamart Red as primary */
     --primary-foreground: oklch(0.985 0 0);
     --secondary: var(--alfamart-blue); /* Use Alfamart Blue as secondary */
     --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.97 0 0);
+    --muted: oklch(0.965 0.015 92);
     --muted-foreground: oklch(0.556 0 0);
     --accent: var(--alfamart-yellow); /* Use Alfamart Yellow as accent */
     --accent-foreground: oklch(0.145 0 0);
     --destructive: var(--alfamart-red);
     --destructive-foreground: oklch(0.985 0 0);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
+    --border: oklch(0.905 0.02 90);
+    --input: oklch(0.905 0.02 90);
     --ring: var(--alfamart-blue);
     --chart-1: var(--alfamart-red);
     --chart-2: var(--alfamart-blue);
     --chart-3: var(--alfamart-yellow);
     --chart-4: oklch(0.828 0.189 84.429);
     --chart-5: oklch(0.769 0.188 70.08);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
+    --radius: 0.85rem;
+    --sidebar: oklch(0.99 0.01 90);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: var(--alfamart-red);
     --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent: oklch(0.965 0.02 90);
     --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
+    --sidebar-border: oklch(0.9 0.02 90);
     --sidebar-ring: var(--alfamart-blue);
 }
 
@@ -147,5 +152,31 @@
 
     body {
         @apply bg-background text-foreground;
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+    }
+}
+
+@layer utilities {
+    .font-display {
+        font-family: var(--font-display);
+        letter-spacing: -0.02em;
+    }
+
+    .app-surface {
+        background-color: var(--background);
+        background-image:
+            radial-gradient(1200px 600px at -10% -10%, rgba(227, 30, 36, 0.16), transparent 60%),
+            radial-gradient(900px 500px at 110% 0%, rgba(0, 102, 204, 0.14), transparent 55%),
+            radial-gradient(700px 400px at 50% 120%, rgba(255, 184, 28, 0.12), transparent 60%),
+            linear-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+        background-size: auto, auto, auto, 32px 32px, 32px 32px;
+        background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
     }
 }
