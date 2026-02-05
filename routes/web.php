@@ -26,6 +26,7 @@ Route::post('logout', [NikLoginController::class, 'destroy'])
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
     Route::get('grid/display', [App\Http\Controllers\GridPhotoController::class, 'display'])->name('grid.display');
+    Route::get('grid/edit', [App\Http\Controllers\GridPhotoController::class, 'edit'])->name('grid.edit');
     Route::resource('grid', App\Http\Controllers\GridPhotoController::class)->only(['index', 'store', 'update', 'destroy']);
     Route::post('grid/batch', [App\Http\Controllers\GridPhotoController::class, 'batch'])->name('grid.batch');
     

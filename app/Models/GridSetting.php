@@ -13,6 +13,8 @@ class GridSetting extends Model
     protected $fillable = [
         'store_id',
         'layout',
+        'spacing',
+        'ratio',
     ];
 
     public function store(): BelongsTo

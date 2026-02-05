@@ -35,12 +35,14 @@ class GridPhotoController extends Controller
 
         $setting = GridSetting::firstOrCreate(
             ['store_id' => $user->employee->store_id],
-            ['layout' => '2x3']
+            ['layout' => '2x3', 'spacing' => 4, 'ratio' => '4:3']
         );
 
         return Inertia::render('grid/index', [
             'photos' => $photos,
             'layout' => $setting->layout,
+            'spacing' => $setting->spacing ?? 4,
+            'ratio' => $setting->ratio ?? '4:3',
         ]);
     }
 
@@ -75,6 +77,42 @@ class GridPhotoController extends Controller
         return Inertia::render('grid/display', [
             'photos' => $photos,
             'layout' => $setting->layout,
+        ]);
+    }
+
+    public function edit(Request $request)
+    {
+        $user = $request->user()->load('employee.store');
+
+        if (!$user->employee) {
+            abort(403, 'Unauthorized');
+        }
+
+        $photos = GridPhoto::where('store_id', $user->employee->store_id)
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get()
+            ->map(function (GridPhoto $photo) {
+                return [
+                    'id' => $photo->id,
+                    'title' => $photo->title,
+                    'code' => $photo->code,
+                    'span' => $photo->span,
+                    'position' => $photo->position,
+                    'image_url' => Storage::url($photo->image_path),
+                ];
+            });
+
+        $setting = GridSetting::firstOrCreate(
+            ['store_id' => $user->employee->store_id],
+            ['layout' => '2x3', 'spacing' => 4, 'ratio' => '1:1']
+        );
+
+        return Inertia::render('grid/edit', [
+            'photos' => $photos,
+            'layout' => $setting->layout,
+            'spacing' => $setting->spacing ?? 4,
+            'ratio' => $setting->ratio ?? '1:1',
         ]);
     }
 
@@ -121,6 +159,8 @@ class GridPhotoController extends Controller
 
         $validated = $request->validate([
             'layout' => 'nullable|in:2x2,2x3,3x3',
+            'spacing' => 'nullable|integer|min:0|max:16',
+            'ratio' => 'nullable|in:1:1,4:3,16:9',
             'items' => 'nullable|array',
             'items.*.position' => 'required|integer|min:1|max:12',
             'items.*.title' => 'nullable|string|max:120',
@@ -128,10 +168,21 @@ class GridPhotoController extends Controller
             'items.*.image' => 'nullable|image|max:5120',
         ]);
 
+        $settingData = [];
         if (!empty($validated['layout'])) {
+            $settingData['layout'] = $validated['layout'];
+        }
+        if (isset($validated['spacing'])) {
+            $settingData['spacing'] = $validated['spacing'];
+        }
+        if (!empty($validated['ratio'])) {
+            $settingData['ratio'] = $validated['ratio'];
+        }
+
+        if (!empty($settingData)) {
             GridSetting::updateOrCreate(
                 ['store_id' => $user->employee->store_id],
-                ['layout' => $validated['layout']]
+                $settingData
             );
         }
 
