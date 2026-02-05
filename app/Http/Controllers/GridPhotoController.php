@@ -44,6 +44,40 @@ class GridPhotoController extends Controller
         ]);
     }
 
+    public function display(Request $request)
+    {
+        $user = $request->user()->load('employee.store');
+
+        if (!$user->employee) {
+            abort(403, 'Unauthorized');
+        }
+
+        $photos = GridPhoto::where('store_id', $user->employee->store_id)
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get()
+            ->map(function (GridPhoto $photo) {
+                return [
+                    'id' => $photo->id,
+                    'title' => $photo->title,
+                    'code' => $photo->code,
+                    'span' => $photo->span,
+                    'position' => $photo->position,
+                    'image_url' => Storage::url($photo->image_path),
+                ];
+            });
+
+        $setting = GridSetting::firstOrCreate(
+            ['store_id' => $user->employee->store_id],
+            ['layout' => '2x3']
+        );
+
+        return Inertia::render('grid/display', [
+            'photos' => $photos,
+            'layout' => $setting->layout,
+        ]);
+    }
+
     public function store(Request $request)
     {
         $user = $request->user()->load('employee.store');

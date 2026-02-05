@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Images, Trash2, Save } from 'lucide-react';
+import { Images, Trash2, Save, Eye } from 'lucide-react';
 import type { SharedData } from '@/types';
 import { useMemo, useState } from 'react';
 
@@ -231,6 +231,12 @@ export default function GridIndex() {
                         </p>
                     </div>
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                        <Button variant="outline" asChild>
+                            <a href="/grid/display">
+                                <Eye className="w-4 h-4 mr-2" />
+                                Lihat Grid
+                            </a>
+                        </Button>
                         <Badge className="w-fit bg-red-600 text-white">
                             {storeName}
                         </Badge>
