@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Store, FileText, LayoutGrid, Settings } from 'lucide-react';
+import { Store, FileText, LayoutGrid, Settings, Images } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -25,6 +25,11 @@ const mainNavItems: NavItem[] = [
         title: 'Laporan Shift',
         href: '/reports',
         icon: FileText,
+    },
+    {
+        title: 'Grid Foto',
+        href: '/grid',
+        icon: Images,
     },
 ];
 

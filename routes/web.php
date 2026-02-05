@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\NikLoginController;
+use App\Http\Controllers\GridPhotoController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -24,6 +25,8 @@ Route::post('logout', [NikLoginController::class, 'destroy'])
 // Dashboard & Reports
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard');
+    Route::resource('grid', GridPhotoController::class)->only(['index', 'store', 'update', 'destroy']);
+    Route::post('grid/batch', [GridPhotoController::class, 'batch'])->name('grid.batch');
     
     // Shift Reports
     Route::resource('reports', App\Http\Controllers\ShiftReportController::class);
