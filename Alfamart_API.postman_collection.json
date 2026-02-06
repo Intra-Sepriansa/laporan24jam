@@ -1,0 +1,284 @@
+{
+	"info": {
+		"_postman_id": "alfamart-shift3-api",
+		"name": "Alfamart Shift 3 Report API",
+		"description": "API Collection untuk Sistem Laporan Shift 3 Alfamart",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8000/api",
+			"type": "string"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    var jsonData = pm.response.json();",
+									"    pm.environment.set(\"token\", jsonData.data.token);",
+									"    pm.collectionVariables.set(\"token\", jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nik\": \"14085061\",\n  \"password\": \"TB56#061\",\n  \"remember\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "login"]
+						},
+						"description": "Login dengan NIK dan password untuk mendapatkan API token"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Employee by NIK",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/employee/by-nik?nik=14085061",
+							"host": ["{{base_url}}"],
+							"path": ["employee", "by-nik"],
+							"query": [
+								{
+									"key": "nik",
+									"value": "14085061"
+								}
+							]
+						},
+						"description": "Mendapatkan data karyawan berdasarkan NIK (untuk auto-fill form login)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Authenticated User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/user",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "user"]
+						},
+						"description": "Mendapatkan data user yang sedang login"
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/logout",
+							"host": ["{{base_url}}"],
+							"path": ["auth", "logout"]
+						},
+						"description": "Logout dan hapus token autentikasi"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dashboard",
+			"item": [
+				{
+					"name": "Get Dashboard Statistics",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/dashboard/statistics",
+							"host": ["{{base_url}}"],
+							"path": ["dashboard", "statistics"]
+						},
+						"description": "Mendapatkan statistik dashboard untuk bulan ini"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Sales Trend",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/dashboard/sales-trend",
+							"host": ["{{base_url}}"],
+							"path": ["dashboard", "sales-trend"]
+						},
+						"description": "Mendapatkan tren penjualan 7 hari terakhir"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Recent Reports",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/dashboard/recent-reports",
+							"host": ["{{base_url}}"],
+							"path": ["dashboard", "recent-reports"]
+						},
+						"description": "Mendapatkan 5 laporan terbaru"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Get All Reports",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/reports?page=1&per_page=10",
+							"host": ["{{base_url}}"],
+							"path": ["reports"],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "per_page",
+									"value": "10"
+								},
+								{
+									"key": "search",
+									"value": "FEBRUARY",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Mendapatkan daftar semua laporan shift dengan pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Report by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/reports/1",
+							"host": ["{{base_url}}"],
+							"path": ["reports", "1"]
+						},
+						"description": "Mendapatkan detail laporan shift berdasarkan ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Report",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"month_year\": \"FEBRUARY 2026\",\n  \"shift\": 3,\n  \"report_date\": \"2026-02-06\",\n  \"details\": [\n    {\n      \"day_number\": 1,\n      \"transaction_date\": \"2026-02-01\",\n      \"spd\": 6360500,\n      \"std\": 107,\n      \"pulsa\": 0,\n      \"notes\": \"\"\n    },\n    {\n      \"day_number\": 2,\n      \"transaction_date\": \"2026-02-02\",\n      \"spd\": 2328400,\n      \"std\": 67,\n      \"pulsa\": 23500,\n      \"notes\": \"Promo hari ini\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/reports",
+							"host": ["{{base_url}}"],
+							"path": ["reports"]
+						},
+						"description": "Membuat laporan shift baru"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Report",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"month_year\": \"FEBRUARY 2026\",\n  \"shift\": 3,\n  \"report_date\": \"2026-02-06\",\n  \"details\": [\n    {\n      \"day_number\": 1,\n      \"transaction_date\": \"2026-02-01\",\n      \"spd\": 6500000,\n      \"std\": 110,\n      \"pulsa\": 0,\n      \"notes\": \"Updated\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/reports/1",
+							"host": ["{{base_url}}"],
+							"path": ["reports", "1"]
+						},
+						"description": "Update laporan shift yang sudah ada"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Report",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/reports/1",
+							"host": ["{{base_url}}"],
+							"path": ["reports", "1"]
+						},
+						"description": "Hapus laporan shift"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
