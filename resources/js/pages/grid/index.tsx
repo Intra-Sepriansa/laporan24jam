@@ -15,10 +15,14 @@ import {
     Plus,
     Camera,
     Upload,
+    Download,
+    Share2,
+    X,
 } from 'lucide-react';
 import type { SharedData } from '@/types';
 import { useMemo, useState, useRef } from 'react';
 import { cn } from '@/lib/utils';
+import { domToPng } from 'modern-screenshot';
 
 interface GridPhoto {
     id: number;
@@ -36,7 +40,7 @@ type GridPageProps = SharedData & {
     ratio?: string | null;
 };
 
-type TabType = 'layout' | 'spacing' | 'ratio';
+type TabType = 'layout' | 'spacing' | 'ratio' | 'warna';
 
 interface PendingPhoto {
     file: File;
@@ -55,6 +59,20 @@ const ratioOptions = [
     { value: '16:9', label: '16:9', icon: Smartphone },
 ];
 
+const textColorOptions = [
+    { value: 'white', label: 'Putih', color: '#ffffff' },
+    { value: 'yellow', label: 'Kuning', color: '#fbbf24' },
+    { value: 'red', label: 'Merah', color: '#ef4444' },
+    { value: 'blue', label: 'Biru', color: '#3b82f6' },
+    { value: 'green', label: 'Hijau', color: '#22c55e' },
+    { value: 'pink', label: 'Pink', color: '#ec4899' },
+    { value: 'orange', label: 'Orange', color: '#f97316' },
+    { value: 'gradient-sunset', label: 'Sunset', gradient: 'linear-gradient(90deg, #f97316, #ef4444, #ec4899)' },
+    { value: 'gradient-ocean', label: 'Ocean', gradient: 'linear-gradient(90deg, #06b6d4, #3b82f6, #8b5cf6)' },
+    { value: 'gradient-gold', label: 'Gold', gradient: 'linear-gradient(90deg, #fbbf24, #f59e0b, #d97706)' },
+    { value: 'gradient-neon', label: 'Neon', gradient: 'linear-gradient(90deg, #22c55e, #06b6d4, #ec4899)' },
+];
+
 export default function GridIndex() {
     const { auth, photos, layout: savedLayout, spacing: savedSpacing, ratio: savedRatio } = usePage<GridPageProps>().props;
     const storeInfo = auth?.user?.employee?.store;
@@ -68,8 +86,14 @@ export default function GridIndex() {
     const [isCompressing, setIsCompressing] = useState(false);
 
     const [pendingPhotos, setPendingPhotos] = useState<Map<number, PendingPhoto>>(new Map());
+    const [displayStoreCode, setDisplayStoreCode] = useState(storeCode);
+    const [textColor, setTextColor] = useState('white');
+    const [isSavingImage, setIsSavingImage] = useState(false);
+    const [fabOpen, setFabOpen] = useState(false);
+    const [isSharing, setIsSharing] = useState(false);
     const fileInputRefs = useRef<Map<number, HTMLInputElement>>(new Map());
     const bulkInputRef = useRef<HTMLInputElement>(null);
+    const gridContainerRef = useRef<HTMLDivElement>(null);
 
     const gridConfig = layoutOptions.find((opt) => opt.value === layout) ?? layoutOptions[1];
     const totalSlots = gridConfig.rows * gridConfig.cols;
@@ -207,7 +231,8 @@ export default function GridIndex() {
         pendingPhotos.size > 0 ||
         layout !== (savedLayout ?? '2x3') ||
         spacing !== (savedSpacing ?? 4) ||
-        ratio !== (savedRatio ?? '4:3');
+        ratio !== (savedRatio ?? '4:3') ||
+        displayStoreCode !== storeCode;
 
     const handleSave = () => {
         setIsSaving(true);
@@ -215,10 +240,11 @@ export default function GridIndex() {
         formData.append('layout', layout);
         formData.append('spacing', String(spacing));
         formData.append('ratio', ratio);
+        formData.append('store_code', displayStoreCode);
 
         pendingPhotos.forEach((pending, position) => {
             formData.append(`items[${position}][position]`, String(position));
-            formData.append(`items[${position}][code]`, storeCode);
+            formData.append(`items[${position}][code]`, displayStoreCode);
             formData.append(`items[${position}][image]`, pending.file);
         });
 
@@ -242,6 +268,75 @@ export default function GridIndex() {
         return photo?.image_url ?? null;
     };
 
+    const handleSaveAsImage = async () => {
+        if (!gridContainerRef.current) return;
+        setIsSavingImage(true);
+        try {
+            const dataUrl = await domToPng(gridContainerRef.current, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+            });
+
+            // Convert base64 to blob for proper download
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement('a');
+            link.download = `grid-${displayStoreCode || 'foto'}-${new Date().toISOString().slice(0, 10)}.png`;
+            link.href = url;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Failed to save grid as image:', error);
+            alert('Gagal menyimpan gambar. Silakan coba lagi.');
+        } finally {
+            setIsSavingImage(false);
+        }
+    };
+
+    const handleShare = async () => {
+        if (!gridContainerRef.current) return;
+        setIsSharing(true);
+        setFabOpen(false);
+        try {
+            const dataUrl = await domToPng(gridContainerRef.current, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+            });
+
+            const response = await fetch(dataUrl);
+            const blob = await response.blob();
+            const file = new File([blob], `grid-${displayStoreCode || 'foto'}.png`, { type: 'image/png' });
+
+            if (navigator.share && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: `Grid Foto ${displayStoreCode}`,
+                    text: `Dokumentasi Display ${displayStoreCode}`,
+                });
+            } else {
+                // Fallback: download the image
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `grid-${displayStoreCode || 'foto'}-${new Date().toISOString().slice(0, 10)}.png`;
+                link.href = url;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        } catch (error) {
+            if ((error as Error).name !== 'AbortError') {
+                console.error('Failed to share:', error);
+            }
+        } finally {
+            setIsSharing(false);
+        }
+    };
+
     return (
         <AppLayout>
             <Head title="Grid Foto" />
@@ -258,11 +353,30 @@ export default function GridIndex() {
                         </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        {/* Desktop only buttons - mobile uses FAB */}
+                        <Button
+                            variant="outline"
+                            onClick={handleShare}
+                            disabled={isSharing || photos.length === 0}
+                            className="h-10 hidden sm:flex"
+                        >
+                            <Share2 className="w-4 h-4 mr-2" />
+                            {isSharing ? 'Sharing...' : 'Share'}
+                        </Button>
+                        <Button
+                            variant="outline"
+                            onClick={handleSaveAsImage}
+                            disabled={isSavingImage || photos.length === 0}
+                            className="h-10 hidden sm:flex"
+                        >
+                            <Download className="w-4 h-4 mr-2" />
+                            {isSavingImage ? 'Menyimpan...' : 'Simpan Gambar'}
+                        </Button>
                         <Button
                             variant="outline"
                             onClick={() => bulkInputRef.current?.click()}
                             disabled={isCompressing}
-                            className="h-10"
+                            className="h-10 hidden sm:flex"
                         >
                             <Upload className="w-4 h-4 mr-2" />
                             Upload Banyak
@@ -278,7 +392,8 @@ export default function GridIndex() {
                         <Button variant="outline" asChild className="h-10">
                             <a href="/grid/display">
                                 <Eye className="w-4 h-4 mr-2" />
-                                Lihat Grid
+                                <span className="hidden sm:inline">Lihat Grid</span>
+                                <span className="sm:hidden">Lihat</span>
                             </a>
                         </Button>
                         <Button
@@ -286,8 +401,8 @@ export default function GridIndex() {
                             disabled={isSaving || !hasPendingChanges}
                             className="h-10 bg-red-600 hover:bg-red-700"
                         >
-                            <Save className="w-4 h-4 mr-2" />
-                            {isSaving ? 'Menyimpan...' : 'Simpan'}
+                            <Save className="w-4 h-4 sm:mr-2" />
+                            <span className="hidden sm:inline">{isSaving ? 'Menyimpan...' : 'Simpan'}</span>
                         </Button>
                     </div>
                 </div>
@@ -302,7 +417,40 @@ export default function GridIndex() {
 
                 {/* Main Grid Canvas */}
                 <div className="flex-1 mb-6">
-                    <div className={cn('bg-white rounded-2xl shadow-lg overflow-hidden mx-auto max-w-3xl', getAspectRatio())}>
+                    <div ref={gridContainerRef} className={cn('bg-white rounded-2xl shadow-lg overflow-hidden mx-auto max-w-3xl relative', getAspectRatio())}>
+                        {/* Store Code Overlay - Center */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+                            <div className="pointer-events-auto">
+                                {(() => {
+                                    const colorOption = textColorOptions.find(opt => opt.value === textColor);
+                                    const isGradient = colorOption?.gradient;
+                                    const textStyle: React.CSSProperties = isGradient
+                                        ? {
+                                            background: colorOption.gradient,
+                                            WebkitBackgroundClip: 'text',
+                                            WebkitTextFillColor: 'transparent',
+                                            backgroundClip: 'text',
+                                            textShadow: 'none',
+                                            caretColor: '#fff'
+                                        }
+                                        : {
+                                            color: colorOption?.color || '#ffffff',
+                                            textShadow: '0 2px 8px rgba(0,0,0,0.8), 0 0 20px rgba(0,0,0,0.5)',
+                                            caretColor: colorOption?.color || '#ffffff'
+                                        };
+                                    return (
+                                        <input
+                                            type="text"
+                                            value={displayStoreCode}
+                                            onChange={(e) => setDisplayStoreCode(e.target.value)}
+                                            placeholder="KODE TOKO"
+                                            className="text-center font-bold text-2xl sm:text-4xl md:text-5xl bg-transparent border-none focus:outline-none uppercase tracking-wider placeholder:opacity-60 w-auto"
+                                            style={textStyle}
+                                        />
+                                    );
+                                })()}
+                            </div>
+                        </div>
                         <div
                             className="w-full h-full grid bg-gray-100 p-2 sm:p-3"
                             style={{
@@ -402,6 +550,7 @@ export default function GridIndex() {
                             { id: 'layout' as TabType, label: 'Tata Letak', icon: Grid2X2 },
                             { id: 'spacing' as TabType, label: 'Spasi', icon: Images },
                             { id: 'ratio' as TabType, label: 'Rasio', icon: Square },
+                            { id: 'warna' as TabType, label: 'Warna', icon: Square },
                         ].map((tab) => {
                             const Icon = tab.icon;
                             return (
@@ -507,9 +656,110 @@ export default function GridIndex() {
                                 })}
                             </div>
                         )}
+
+                        {activeTab === 'warna' && (
+                            <div className="space-y-3">
+                                <p className="text-sm text-gray-600 text-center mb-3">Pilih warna teks kode toko</p>
+                                <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
+                                    {textColorOptions.map((opt) => {
+                                        const isSelected = textColor === opt.value;
+                                        const bgStyle = opt.gradient
+                                            ? { background: opt.gradient }
+                                            : { backgroundColor: opt.color };
+                                        return (
+                                            <button
+                                                key={opt.value}
+                                                onClick={() => setTextColor(opt.value)}
+                                                className={cn(
+                                                    'flex flex-col items-center gap-1.5 p-2 rounded-xl transition-all',
+                                                    isSelected ? 'bg-red-50 ring-2 ring-red-500' : 'hover:bg-gray-50'
+                                                )}
+                                            >
+                                                <div
+                                                    className={cn(
+                                                        'w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 shadow-sm',
+                                                        isSelected ? 'border-red-500' : 'border-gray-200'
+                                                    )}
+                                                    style={bgStyle}
+                                                />
+                                                <span className="text-[10px] sm:text-xs font-medium text-gray-600">{opt.label}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
+
+            {/* Mobile Floating Action Button */}
+            <div className="fixed bottom-24 right-4 z-50 sm:hidden">
+                {/* FAB Menu Items */}
+                <div className={cn(
+                    'absolute bottom-16 right-0 flex flex-col gap-3 transition-all duration-300 origin-bottom-right',
+                    fabOpen ? 'opacity-100 scale-100' : 'opacity-0 scale-75 pointer-events-none'
+                )}>
+                    {/* Share Button */}
+                    <button
+                        onClick={handleShare}
+                        disabled={isSharing || photos.length === 0}
+                        className="flex items-center gap-3 bg-green-500 text-white px-4 py-3 rounded-full shadow-lg hover:bg-green-600 active:scale-95 transition-all disabled:opacity-50"
+                    >
+                        <Share2 className="w-5 h-5" />
+                        <span className="text-sm font-medium whitespace-nowrap">
+                            {isSharing ? 'Sharing...' : 'Share'}
+                        </span>
+                    </button>
+
+                    {/* Download Button */}
+                    <button
+                        onClick={() => { handleSaveAsImage(); setFabOpen(false); }}
+                        disabled={isSavingImage || photos.length === 0}
+                        className="flex items-center gap-3 bg-blue-500 text-white px-4 py-3 rounded-full shadow-lg hover:bg-blue-600 active:scale-95 transition-all disabled:opacity-50"
+                    >
+                        <Download className="w-5 h-5" />
+                        <span className="text-sm font-medium whitespace-nowrap">
+                            {isSavingImage ? 'Saving...' : 'Simpan'}
+                        </span>
+                    </button>
+
+                    {/* Upload Button */}
+                    <button
+                        onClick={() => { bulkInputRef.current?.click(); setFabOpen(false); }}
+                        disabled={isCompressing}
+                        className="flex items-center gap-3 bg-purple-500 text-white px-4 py-3 rounded-full shadow-lg hover:bg-purple-600 active:scale-95 transition-all disabled:opacity-50"
+                    >
+                        <Upload className="w-5 h-5" />
+                        <span className="text-sm font-medium whitespace-nowrap">Upload</span>
+                    </button>
+                </div>
+
+                {/* Main FAB Button */}
+                <button
+                    onClick={() => setFabOpen(!fabOpen)}
+                    className={cn(
+                        'w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 active:scale-90',
+                        fabOpen
+                            ? 'bg-gray-800 rotate-45'
+                            : 'bg-gradient-to-br from-red-500 to-red-600'
+                    )}
+                >
+                    {fabOpen ? (
+                        <X className="w-6 h-6 text-white" />
+                    ) : (
+                        <Plus className="w-7 h-7 text-white" />
+                    )}
+                </button>
+            </div>
+
+            {/* FAB Overlay */}
+            {fabOpen && (
+                <div
+                    className="fixed inset-0 bg-black/30 z-40 sm:hidden backdrop-blur-sm"
+                    onClick={() => setFabOpen(false)}
+                />
+            )}
         </AppLayout>
     );
 }

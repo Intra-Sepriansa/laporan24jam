@@ -954,3 +954,68 @@ Jika ada pertanyaan atau masalah:
 [⬆ Back to Top](#-sistem-laporan-shift-3-alfamart)
 
 </div>
+
+
+---
+
+## 🔌 API Documentation
+
+Sistem ini menyediakan RESTful API untuk integrasi dengan aplikasi eksternal atau mobile app.
+
+### Base URL
+```
+Development: http://localhost:8000/api
+Production: https://api.alfamart.com/api
+```
+
+### Authentication
+API menggunakan **Laravel Sanctum** untuk autentikasi. Setelah login, gunakan token pada header:
+```
+Authorization: Bearer {your-token-here}
+```
+
+### Available Endpoints
+
+#### Authentication
+- `POST /api/auth/login` - Login dengan NIK dan password
+- `POST /api/auth/logout` - Logout dan hapus token
+- `GET /api/employee/by-nik` - Get employee data by NIK
+- `GET /api/auth/user` - Get authenticated user
+
+#### Dashboard
+- `GET /api/dashboard/statistics` - Get dashboard statistics
+- `GET /api/dashboard/sales-trend` - Get sales trend (7 days)
+- `GET /api/dashboard/recent-reports` - Get recent reports (5 latest)
+
+#### Reports
+- `GET /api/reports` - Get all reports (with pagination)
+- `GET /api/reports/{id}` - Get report by ID
+- `POST /api/reports` - Create new report
+- `PUT /api/reports/{id}` - Update report
+- `DELETE /api/reports/{id}` - Delete report
+
+### Documentation Files
+- **Full API Documentation**: `API_DOCUMENTATION.md`
+- **Postman Collection**: `Alfamart_API.postman_collection.json`
+
+### Quick Test with cURL
+```bash
+# Login
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"nik": "14085061", "password": "TB56#061"}'
+
+# Get Dashboard Statistics (replace YOUR_TOKEN)
+curl -X GET http://localhost:8000/api/dashboard/statistics \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+### Import to Postman
+1. Open Postman
+2. Click "Import"
+3. Select `Alfamart_API.postman_collection.json`
+4. Set environment variable `base_url` to `http://localhost:8000/api`
+5. Run "Login" request to get token
+6. Token will be automatically saved for other requests
+
+---

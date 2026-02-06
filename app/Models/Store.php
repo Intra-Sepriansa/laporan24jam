@@ -14,6 +14,10 @@ class Store extends Model
         'code',
         'name',
         'area',
+        'address',
+        'phone',
+        'photo_path',
+        'description',
         'is_active',
     ];
 
@@ -29,5 +33,20 @@ class Store extends Model
     public function shiftReports(): HasMany
     {
         return $this->hasMany(ShiftReport::class);
+    }
+
+    public function targets(): HasMany
+    {
+        return $this->hasMany(Target::class);
+    }
+
+    public function shiftNotes(): HasMany
+    {
+        return $this->hasMany(ShiftNote::class);
+    }
+
+    public function shiftChecklists(): HasMany
+    {
+        return $this->hasMany(ShiftChecklist::class);
     }
 }
