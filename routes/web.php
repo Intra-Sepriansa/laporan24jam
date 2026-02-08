@@ -37,6 +37,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reports/{report}/export/pdf', [App\Http\Controllers\ExportController::class, 'exportPdf'])->name('reports.export.pdf');
     Route::get('reports/{report}/export/excel', [App\Http\Controllers\ExportController::class, 'exportExcel'])->name('reports.export.excel');
 
+    // Attendance
+    Route::resource('attendance', App\Http\Controllers\AttendanceController::class);
+    Route::post('attendance/clock-in', [App\Http\Controllers\AttendanceController::class, 'clockIn'])->name('attendance.clock-in');
+    Route::post('attendance/clock-out', [App\Http\Controllers\AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
+
     // Analytics
     Route::get('analytics', [App\Http\Controllers\AnalyticsController::class, 'index'])->name('analytics.index');
 
