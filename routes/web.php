@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Attendance
     Route::resource('attendance', App\Http\Controllers\AttendanceController::class);
+    Route::get('attendance-schedule', [App\Http\Controllers\AttendanceController::class, 'schedule'])->name('attendance.schedule');
     Route::post('attendance/clock-in', [App\Http\Controllers\AttendanceController::class, 'clockIn'])->name('attendance.clock-in');
     Route::post('attendance/clock-out', [App\Http\Controllers\AttendanceController::class, 'clockOut'])->name('attendance.clock-out');
 

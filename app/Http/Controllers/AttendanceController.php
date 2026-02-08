@@ -255,4 +255,60 @@ class AttendanceController extends Controller
 
         return back()->with('success', 'Clock out berhasil pada ' . now()->format('H:i'));
     }
+
+    /**
+     * Show schedule calendar view
+     */
+    public function schedule(Request $request)
+    {
+        $user = $request->user();
+        $storeId = $user->employee->store_id;
+
+        // Get month and year from request or use current
+        $month = $request->get('month', now()->format('m'));
+        $year = $request->get('year', now()->format('Y'));
+        
+        $date = Carbon::create($year, $month, 1);
+        $daysInMonth = $date->daysInMonth;
+
+        // Get all employees from the store
+        $employees = \App\Models\Employee::where('store_id', $storeId)
+            ->orderBy('name')
+            ->get();
+
+        // Get all attendances for the month
+        $attendances = Attendance::where('store_id', $storeId)
+            ->whereYear('attendance_date', $year)
+            ->whereMonth('attendance_date', $month)
+            ->get();
+
+        // Build schedule data structure
+        $scheduleData = [];
+        foreach ($employees as $employee) {
+            $scheduleData[$employee->id] = [];
+            
+            // Get attendances for this employee
+            $employeeAttendances = $attendances->where('employee_id', $employee->id);
+            
+            foreach ($employeeAttendances as $attendance) {
+                $dateKey = $attendance->attendance_date;
+                
+                // If status is 'off', set shift to null
+                if ($attendance->status === 'off') {
+                    $scheduleData[$employee->id][$dateKey] = null;
+                } else {
+                    $scheduleData[$employee->id][$dateKey] = $attendance->shift;
+                }
+            }
+        }
+
+        return Inertia::render('attendance/schedule', [
+            'employees' => $employees,
+            'scheduleData' => $scheduleData,
+            'month' => $month,
+            'year' => (int) $year,
+            'daysInMonth' => $daysInMonth,
+            'currentDate' => now()->format('Y-m-d'),
+        ]);
+    }
 }

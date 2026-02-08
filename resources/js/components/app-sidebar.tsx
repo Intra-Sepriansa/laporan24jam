@@ -28,7 +28,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Jadwal Absen',
-        href: '/attendance',
+        href: '/attendance-schedule',
         icon: Calendar,
     },
     {
