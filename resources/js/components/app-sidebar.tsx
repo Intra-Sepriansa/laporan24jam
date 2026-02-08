@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Store, FileText, LayoutGrid, Settings, Images } from 'lucide-react';
+import { Store, FileText, LayoutGrid, Settings, Images, BarChart3, Target, Users, StoreIcon, ClipboardList, FileDown, Calendar } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -27,6 +27,41 @@ const mainNavItems: NavItem[] = [
         icon: FileText,
     },
     {
+        title: 'Jadwal Absen',
+        href: '/attendance',
+        icon: Calendar,
+    },
+    {
+        title: 'Analitik',
+        href: '/analytics',
+        icon: BarChart3,
+    },
+    {
+        title: 'Target & KPI',
+        href: '/targets',
+        icon: Target,
+    },
+    {
+        title: 'Catatan & Checklist',
+        href: '/notes',
+        icon: ClipboardList,
+    },
+    {
+        title: 'Karyawan',
+        href: '/employees',
+        icon: Users,
+    },
+    {
+        title: 'Profil Toko',
+        href: '/store',
+        icon: StoreIcon,
+    },
+    {
+        title: 'Ringkasan & Export',
+        href: '/summary',
+        icon: FileDown,
+    },
+    {
         title: 'Grid Foto',
         href: '/grid',
         icon: Images,
@@ -52,14 +87,14 @@ export function AppSidebar() {
         <Sidebar
             collapsible="icon"
             variant="inset"
-            className="border-sidebar-border/60 [&_[data-sidebar=sidebar]]:bg-white/90 [&_[data-sidebar=sidebar]]:backdrop-blur-xl"
+            className="border-sidebar-border/60 **:data-[sidebar=sidebar]:bg-white/90 **:data-[sidebar=sidebar]:backdrop-blur-xl"
         >
             <SidebarHeader className="p-3">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild className="h-auto p-0 hover:bg-transparent">
                             <Link href={dashboard()} prefetch>
-                                <div className="w-full rounded-2xl bg-gradient-to-br from-red-600 via-red-500 to-blue-600 p-4 text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.8)] transition-transform duration-300 hover:-translate-y-0.5">
+                                <div className="w-full rounded-2xl bg-linear-to-br from-red-600 via-red-500 to-blue-600 p-4 text-white shadow-[0_18px_40px_-24px_rgba(15,23,42,0.8)] transition-transform duration-300 hover:-translate-y-0.5">
                                     <div className="flex items-center gap-3">
                                         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/30">
                                             <Store className="h-6 w-6" />
