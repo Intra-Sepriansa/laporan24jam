@@ -291,7 +291,8 @@ class AttendanceController extends Controller
             $employeeAttendances = $attendances->where('employee_id', $employee->id);
             
             foreach ($employeeAttendances as $attendance) {
-                $dateKey = $attendance->attendance_date;
+                // Convert Carbon date to string format Y-m-d
+                $dateKey = Carbon::parse($attendance->attendance_date)->format('Y-m-d');
                 
                 // If status is 'off', set shift to null
                 if ($attendance->status === 'off') {
