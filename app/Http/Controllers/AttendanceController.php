@@ -274,7 +274,14 @@ class AttendanceController extends Controller
         // Get all employees from the store
         $employees = \App\Models\Employee::where('store_id', $storeId)
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function ($employee) {
+                return [
+                    'id' => $employee->id,
+                    'nik' => $employee->nik,
+                    'name' => $employee->name,
+                ];
+            });
 
         // Get all attendances for the month
         $attendances = Attendance::where('store_id', $storeId)
@@ -285,31 +292,53 @@ class AttendanceController extends Controller
         // Build schedule data structure
         $scheduleData = [];
         foreach ($employees as $employee) {
-            $scheduleData[$employee->id] = [];
+            $scheduleData[$employee['id']] = [];
             
             // Get attendances for this employee
-            $employeeAttendances = $attendances->where('employee_id', $employee->id);
+            $employeeAttendances = $attendances->where('employee_id', $employee['id']);
             
             foreach ($employeeAttendances as $attendance) {
-                // Convert Carbon date to string format Y-m-d
-                $dateKey = Carbon::parse($attendance->attendance_date)->format('Y-m-d');
+                // Get day number from date
+                $day = Carbon::parse($attendance->attendance_date)->day;
                 
                 // If status is 'off', set shift to null
                 if ($attendance->status === 'off') {
-                    $scheduleData[$employee->id][$dateKey] = null;
+                    $scheduleData[$employee['id']][$day] = null;
                 } else {
-                    $scheduleData[$employee->id][$dateKey] = $attendance->shift;
+                    $scheduleData[$employee['id']][$day] = $attendance->shift;
+                }
+            }
+        }
+
+        // Get today's schedule
+        $today = now();
+        $todaySchedule = [];
+        if ($today->month == $month && $today->year == $year) {
+            $todayAttendances = $attendances->where('attendance_date', $today->format('Y-m-d'));
+            foreach ($todayAttendances as $attendance) {
+                if ($attendance->status !== 'off') {
+                    $employee = $employees->firstWhere('id', $attendance->employee_id);
+                    if ($employee) {
+                        $todaySchedule[] = [
+                            'employee' => $employee,
+                            'shift' => $attendance->shift,
+                            'clock_in' => $attendance->clock_in,
+                            'clock_out' => $attendance->clock_out,
+                            'status' => $attendance->status,
+                        ];
+                    }
                 }
             }
         }
 
         return Inertia::render('attendance/schedule', [
-            'employees' => $employees,
+            'employees' => $employees->values(),
             'scheduleData' => $scheduleData,
             'month' => $month,
             'year' => (int) $year,
             'daysInMonth' => $daysInMonth,
             'currentDate' => now()->format('Y-m-d'),
+            'todaySchedule' => $todaySchedule,
         ]);
     }
 }
