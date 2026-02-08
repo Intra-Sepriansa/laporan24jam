@@ -54,7 +54,7 @@ export default function AttendanceSchedule({
     const getShiftBadge = (shift: number | null, isHovered: boolean = false) => {
         if (shift === null) {
             return (
-                <div className={`w-10 h-10 flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white font-bold rounded-lg shadow-md transition-all duration-300 ${isHovered ? 'scale-110 shadow-lg' : ''}`}>
+                <div className={`w-10 h-10 flex items-center justify-center bg-gradient-to-br from-red-500 to-red-600 text-white font-bold rounded-lg shadow-md transition-all ${isHovered ? 'scale-110 shadow-lg' : ''}`}>
                     <span className="text-xs">OFF</span>
                 </div>
             );
@@ -67,7 +67,7 @@ export default function AttendanceSchedule({
         };
 
         return (
-            <div className={`w-10 h-10 flex items-center justify-center bg-gradient-to-br ${shiftStyles[shift as keyof typeof shiftStyles] || 'from-gray-500 to-gray-600'} text-white font-bold rounded-lg shadow-md transition-all duration-300 ${isHovered ? 'scale-110 shadow-lg ring-2 ring-white' : ''}`}>
+            <div className={`w-10 h-10 flex items-center justify-center bg-gradient-to-br ${shiftStyles[shift as keyof typeof shiftStyles] || 'from-gray-500 to-gray-600'} text-white font-bold rounded-lg shadow-md transition-all ${isHovered ? 'scale-110 shadow-lg ring-2 ring-white' : ''}`}>
                 {shift}
             </div>
         );
@@ -141,11 +141,11 @@ export default function AttendanceSchedule({
         <AppLayout>
             <Head title="Jadwal Shift" />
 
-            <div className="space-y-6 animate-in fade-in duration-500">
+            <div className="space-y-6 animate-in fade-in">
                 {/* Header with Month Navigation */}
                 <div className="flex items-center justify-between">
-                    <div className="animate-in slide-in-from-left duration-500">
-                        <h1 className="text-4xl font-black text-gray-900 bg-gradient-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
+                    <div className="animate-in slide-in-from-left">
+                        <h1 className="text-4xl font-black bg-gradient-to-r from-red-600 to-blue-600 bg-clip-text text-transparent">
                             Jadwal Shift
                         </h1>
                         <p className="text-gray-600 mt-2 flex items-center gap-2">
@@ -153,7 +153,7 @@ export default function AttendanceSchedule({
                             Jadwal shift karyawan toko
                         </p>
                     </div>
-                    <div className="flex items-center gap-3 animate-in slide-in-from-right duration-500">
+                    <div className="flex items-center gap-3 animate-in slide-in-from-right">
                         <Button variant="outline" size="sm" onClick={() => changeMonth('prev')}>
                             <ChevronLeft className="w-4 h-4" />
                         </Button>
@@ -177,10 +177,9 @@ export default function AttendanceSchedule({
                     ].map((item, idx) => (
                         <Card 
                             key={idx}
-                            className={`cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl animate-in slide-in-from-bottom duration-500 ${
+                            className={`cursor-pointer transition-all hover:scale-105 hover:shadow-xl animate-in slide-in-from-bottom ${
                                 selectedShift === item.shift ? 'ring-2 ring-primary shadow-xl' : ''
                             }`}
-                            style={{ animationDelay: `${idx * 100}ms` }}
                             onClick={() => filterByShift(item.shift)}
                         >
                             <CardContent className="p-6">
@@ -200,7 +199,7 @@ export default function AttendanceSchedule({
 
                 {/* Today's Schedule */}
                 {todaySchedule.length > 0 && (
-                    <Card className="border-l-4 border-l-primary shadow-lg animate-in slide-in-from-bottom duration-500" style={{ animationDelay: '400ms' }}>
+                    <Card className="border-l-4 border-l-primary shadow-lg animate-in slide-in-from-bottom">
                         <CardHeader className="bg-gradient-to-r from-red-50 to-blue-50">
                             <CardTitle className="flex items-center gap-2 text-xl">
                                 <UserCheck className="w-6 h-6 text-primary" />
@@ -220,8 +219,7 @@ export default function AttendanceSchedule({
                                 {todaySchedule.map((item, idx) => (
                                     <div 
                                         key={idx} 
-                                        className="flex items-center gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 hover:border-primary transition-all duration-300 hover:shadow-lg animate-in zoom-in duration-300"
-                                        style={{ animationDelay: `${idx * 50}ms` }}
+                                        className="flex items-center gap-4 p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 hover:border-primary transition-all hover:shadow-lg animate-in zoom-in"
                                     >
                                         {getShiftBadge(item.shift)}
                                         <div className="flex-1">
@@ -244,7 +242,7 @@ export default function AttendanceSchedule({
                 )}
 
                 {/* Monthly Schedule Table */}
-                <Card className="shadow-xl animate-in slide-in-from-bottom duration-500" style={{ animationDelay: '500ms' }}>
+                <Card className="shadow-xl animate-in slide-in-from-bottom">
                     <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b-2">
                         <CardTitle className="flex items-center gap-2 text-xl">
                             <Users className="w-6 h-6 text-primary" />
