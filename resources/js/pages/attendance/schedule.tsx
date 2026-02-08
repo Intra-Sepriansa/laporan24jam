@@ -2,8 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Calendar, Users, Clock, ChevronLeft, ChevronRight, TrendingUp, UserCheck } from 'lucide-react';
+import { Calendar, Users, Clock, ChevronLeft, ChevronRight, UserCheck } from 'lucide-react';
 import { useState } from 'react';
 
 interface Employee {
@@ -299,8 +298,7 @@ export default function AttendanceSchedule({
                                         return (
                                             <tr 
                                                 key={employee.id} 
-                                                className={`${rowColor} hover:bg-blue-50 transition-colors duration-200 animate-in fade-in duration-300`}
-                                                style={{ animationDelay: `${empIdx * 30}ms` }}
+                                                className={`${rowColor} hover:bg-blue-50 transition-colors animate-in fade-in`}
                                             >
                                                 <td className="border border-gray-300 p-3 font-mono text-xs sticky left-0 bg-white shadow-md z-10">
                                                     <div className="font-semibold text-gray-700">{employee.nik}</div>
@@ -346,7 +344,7 @@ export default function AttendanceSchedule({
                                 ].map((item, idx) => (
                                     <div 
                                         key={idx} 
-                                        className="flex items-center gap-3 animate-in zoom-in duration-300"
+                                        className="flex items-center gap-3 animate-in zoom-in"
                                         style={{ animationDelay: `${idx * 100}ms` }}
                                     >
                                         <div className={`w-10 h-10 bg-gradient-to-br ${item.color} text-white font-bold rounded-lg flex items-center justify-center shadow-md`}>
