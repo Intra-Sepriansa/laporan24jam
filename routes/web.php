@@ -72,6 +72,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Summary & Export Center
     Route::get('summary', [App\Http\Controllers\SummaryController::class, 'index'])->name('summary.index');
+
+    // Cash Management
+    Route::get('cash', [App\Http\Controllers\CashController::class, 'index'])->name('cash.index');
+    Route::get('cash/create', [App\Http\Controllers\CashController::class, 'create'])->name('cash.create');
+    Route::post('cash', [App\Http\Controllers\CashController::class, 'store'])->name('cash.store');
+    Route::get('cash/{cash}/edit', [App\Http\Controllers\CashController::class, 'edit'])->name('cash.edit');
+    Route::put('cash/{cash}', [App\Http\Controllers\CashController::class, 'update'])->name('cash.update');
+    Route::delete('cash/{cash}', [App\Http\Controllers\CashController::class, 'destroy'])->name('cash.destroy');
+    Route::post('cash/{cash}/approve', [App\Http\Controllers\CashController::class, 'approve'])->name('cash.approve');
+    Route::post('cash/{cash}/reject', [App\Http\Controllers\CashController::class, 'reject'])->name('cash.reject');
+    Route::get('cash/report', [App\Http\Controllers\CashController::class, 'report'])->name('cash.report');
 });
 
 require __DIR__.'/settings.php';

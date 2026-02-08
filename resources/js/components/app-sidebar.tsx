@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Store, FileText, LayoutGrid, Settings, Images, BarChart3, Target, Users, StoreIcon, ClipboardList, FileDown, Calendar } from 'lucide-react';
+import { Store, FileText, LayoutGrid, Settings, Images, BarChart3, Target, Users, StoreIcon, ClipboardList, FileDown, Calendar, Wallet } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -25,6 +25,11 @@ const mainNavItems: NavItem[] = [
         title: 'Laporan Shift',
         href: '/reports',
         icon: FileText,
+    },
+    {
+        title: 'Uang Kas',
+        href: '/cash',
+        icon: Wallet,
     },
     {
         title: 'Jadwal Absen',
