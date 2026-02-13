@@ -210,6 +210,10 @@ class DashboardController extends Controller
     {
         $dateRange = $this->getDateRange($period);
         $dateFormat = $this->getDateFormat($period);
+        
+        // For longer periods, group by week or month
+        $shouldGroupByMonth = in_array($period, ['6months', '9months', 'year']);
+        $shouldGroupByWeek = in_array($period, ['3months']);
 
         return ShiftReportDetail::whereHas('shiftReport', function ($query) use ($storeId) {
                 $query->where('store_id', $storeId);
@@ -218,10 +222,13 @@ class DashboardController extends Controller
             ->where('transaction_date', '<=', $dateRange['end'])
             ->orderBy('transaction_date')
             ->get()
-            ->groupBy(function ($item) use ($period) {
-                return $period === 'year' 
-                    ? $item->transaction_date->format('Y-m')
-                    : $item->transaction_date->format('Y-m-d');
+            ->groupBy(function ($item) use ($shouldGroupByMonth, $shouldGroupByWeek) {
+                if ($shouldGroupByMonth) {
+                    return $item->transaction_date->format('Y-m');
+                } elseif ($shouldGroupByWeek) {
+                    return $item->transaction_date->startOfWeek()->format('Y-m-d');
+                }
+                return $item->transaction_date->format('Y-m-d');
             })
             ->map(function ($group, $date) use ($dateFormat) {
                 return [
@@ -238,6 +245,9 @@ class DashboardController extends Controller
     {
         $dateRange = $this->getDateRange($period);
         $dateFormat = $this->getDateFormat($period);
+        
+        $shouldGroupByMonth = in_array($period, ['6months', '9months', 'year']);
+        $shouldGroupByWeek = in_array($period, ['3months']);
 
         return CashTransaction::where('store_id', $storeId)
             ->where('status', 'approved')
@@ -245,10 +255,13 @@ class DashboardController extends Controller
             ->where('transaction_date', '<=', $dateRange['end'])
             ->orderBy('transaction_date')
             ->get()
-            ->groupBy(function ($item) use ($period) {
-                return $period === 'year' 
-                    ? $item->transaction_date->format('Y-m')
-                    : $item->transaction_date->format('Y-m-d');
+            ->groupBy(function ($item) use ($shouldGroupByMonth, $shouldGroupByWeek) {
+                if ($shouldGroupByMonth) {
+                    return $item->transaction_date->format('Y-m');
+                } elseif ($shouldGroupByWeek) {
+                    return $item->transaction_date->startOfWeek()->format('Y-m-d');
+                }
+                return $item->transaction_date->format('Y-m-d');
             })
             ->map(function ($group, $date) use ($dateFormat) {
                 return [
@@ -264,16 +277,22 @@ class DashboardController extends Controller
     {
         $dateRange = $this->getDateRange($period);
         $dateFormat = $this->getDateFormat($period);
+        
+        $shouldGroupByMonth = in_array($period, ['6months', '9months', 'year']);
+        $shouldGroupByWeek = in_array($period, ['3months']);
 
         return Attendance::where('store_id', $storeId)
             ->where('attendance_date', '>=', $dateRange['start'])
             ->where('attendance_date', '<=', $dateRange['end'])
             ->orderBy('attendance_date')
             ->get()
-            ->groupBy(function ($item) use ($period) {
-                return $period === 'year' 
-                    ? $item->attendance_date->format('Y-m')
-                    : $item->attendance_date->format('Y-m-d');
+            ->groupBy(function ($item) use ($shouldGroupByMonth, $shouldGroupByWeek) {
+                if ($shouldGroupByMonth) {
+                    return $item->attendance_date->format('Y-m');
+                } elseif ($shouldGroupByWeek) {
+                    return $item->attendance_date->startOfWeek()->format('Y-m-d');
+                }
+                return $item->attendance_date->format('Y-m-d');
             })
             ->map(function ($group, $date) use ($dateFormat) {
                 return [
@@ -290,11 +309,23 @@ class DashboardController extends Controller
     {
         return match($period) {
             'week' => [
-                'start' => now()->subDays(7),
+                'start' => now()->subWeek(),
                 'end' => now(),
             ],
             'month' => [
-                'start' => now()->subDays(30),
+                'start' => now()->subMonth(),
+                'end' => now(),
+            ],
+            '3months' => [
+                'start' => now()->subMonths(3),
+                'end' => now(),
+            ],
+            '6months' => [
+                'start' => now()->subMonths(6),
+                'end' => now(),
+            ],
+            '9months' => [
+                'start' => now()->subMonths(9),
                 'end' => now(),
             ],
             'year' => [
@@ -302,7 +333,7 @@ class DashboardController extends Controller
                 'end' => now(),
             ],
             default => [
-                'start' => now()->subDays(7),
+                'start' => now()->subWeek(),
                 'end' => now(),
             ],
         };
@@ -313,6 +344,9 @@ class DashboardController extends Controller
         return match($period) {
             'week' => 'd M',
             'month' => 'd M',
+            '3months' => 'd M',
+            '6months' => 'M Y',
+            '9months' => 'M Y',
             'year' => 'M Y',
             default => 'd M',
         };

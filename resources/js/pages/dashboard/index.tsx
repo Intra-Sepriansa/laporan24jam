@@ -90,6 +90,7 @@ interface Props {
     attendanceTrend: TrendData[];
     topPerformers: TopPerformer[];
     currentMonth: string;
+    currentPeriod: string;
 }
 
 export default function Dashboard({ 
@@ -102,8 +103,12 @@ export default function Dashboard({
     cashFlowTrend,
     attendanceTrend,
     topPerformers,
-    currentMonth 
+    currentMonth,
+    currentPeriod 
 }: Props) {
+    const changePeriod = (period: string) => {
+        router.get('/dashboard', { period }, { preserveState: true });
+    };
     const quickActions = [
         {
             title: 'Buat Laporan',
@@ -289,6 +294,73 @@ export default function Dashboard({
                     </Card>
                 </div>
 
+                {/* Period Filter */}
+                <Card className="shadow-xl bg-gradient-to-r from-gray-50 to-gray-100">
+                    <CardContent className="p-6">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center">
+                                    <BarChart3 className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Filter Periode Data</h3>
+                                    <p className="text-sm text-gray-600">Pilih rentang waktu untuk melihat data</p>
+                                </div>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                <Button
+                                    variant={currentPeriod === 'week' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => changePeriod('week')}
+                                    className={currentPeriod === 'week' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                                >
+                                    1 Minggu
+                                </Button>
+                                <Button
+                                    variant={currentPeriod === 'month' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => changePeriod('month')}
+                                    className={currentPeriod === 'month' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                                >
+                                    1 Bulan
+                                </Button>
+                                <Button
+                                    variant={currentPeriod === '3months' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => changePeriod('3months')}
+                                    className={currentPeriod === '3months' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                                >
+                                    3 Bulan
+                                </Button>
+                                <Button
+                                    variant={currentPeriod === '6months' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => changePeriod('6months')}
+                                    className={currentPeriod === '6months' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                                >
+                                    6 Bulan
+                                </Button>
+                                <Button
+                                    variant={currentPeriod === '9months' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => changePeriod('9months')}
+                                    className={currentPeriod === '9months' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                                >
+                                    9 Bulan
+                                </Button>
+                                <Button
+                                    variant={currentPeriod === 'year' ? 'default' : 'outline'}
+                                    size="sm"
+                                    onClick={() => changePeriod('year')}
+                                    className={currentPeriod === 'year' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                                >
+                                    1 Tahun
+                                </Button>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
                 {/* Charts Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Sales Trend */}
@@ -296,7 +368,7 @@ export default function Dashboard({
                         <CardHeader className="bg-gradient-to-r from-red-50 to-red-100 border-b-2">
                             <CardTitle className="flex items-center gap-2">
                                 <TrendingUp className="w-5 h-5 text-red-600" />
-                                Tren Penjualan (7 Hari)
+                                Tren Penjualan
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6">
@@ -325,7 +397,7 @@ export default function Dashboard({
                         <CardHeader className="bg-gradient-to-r from-green-50 to-green-100 border-b-2">
                             <CardTitle className="flex items-center gap-2">
                                 <Wallet className="w-5 h-5 text-green-600" />
-                                Arus Kas (7 Hari)
+                                Arus Kas
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6">
@@ -353,7 +425,7 @@ export default function Dashboard({
                         <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 border-b-2">
                             <CardTitle className="flex items-center gap-2">
                                 <Users className="w-5 h-5 text-blue-600" />
-                                Kehadiran (7 Hari)
+                                Kehadiran
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="pt-6">
