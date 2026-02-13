@@ -59,6 +59,9 @@ class DashboardController extends Controller
         $user = $request->user()->load('employee.store');
         $storeId = $user->employee->store_id;
         
+        // Get filter period (default: week)
+        $period = $request->get('period', 'week');
+        
         // Get current month statistics
         $currentMonth = now()->format('F Y');
         $currentMonthUpper = strtoupper($currentMonth);
@@ -161,61 +164,14 @@ class DashboardController extends Controller
                 ];
             });
         
-        // Sales trend (last 7 days)
-        $salesTrend = ShiftReportDetail::whereHas('shiftReport', function ($query) use ($storeId) {
-                $query->where('store_id', $storeId);
-            })
-            ->where('transaction_date', '>=', now()->subDays(7))
-            ->orderBy('transaction_date')
-            ->get()
-            ->groupBy(function ($item) {
-                return $item->transaction_date->format('Y-m-d');
-            })
-            ->map(function ($group, $date) {
-                return [
-                    'date' => \Carbon\Carbon::parse($date)->format('d M'),
-                    'spd' => $group->sum('spd'),
-                    'std' => $group->sum('std'),
-                    'apc' => $group->avg('apc'),
-                ];
-            })
-            ->values();
+        // Sales trend (based on period)
+        $salesTrend = $this->getSalesTrend($storeId, $period);
 
-        // Cash Flow Trend (last 7 days)
-        $cashFlowTrend = CashTransaction::where('store_id', $storeId)
-            ->where('status', 'approved')
-            ->where('transaction_date', '>=', now()->subDays(7))
-            ->orderBy('transaction_date')
-            ->get()
-            ->groupBy(function ($item) {
-                return $item->transaction_date->format('Y-m-d');
-            })
-            ->map(function ($group, $date) {
-                return [
-                    'date' => \Carbon\Carbon::parse($date)->format('d M'),
-                    'income' => $group->where('type', 'income')->sum('amount'),
-                    'expense' => $group->where('type', 'expense')->sum('amount'),
-                ];
-            })
-            ->values();
+        // Cash Flow Trend (based on period)
+        $cashFlowTrend = $this->getCashFlowTrend($storeId, $period);
 
-        // Attendance Trend (last 7 days)
-        $attendanceTrend = Attendance::where('store_id', $storeId)
-            ->where('attendance_date', '>=', now()->subDays(7))
-            ->orderBy('attendance_date')
-            ->get()
-            ->groupBy(function ($item) {
-                return $item->attendance_date->format('Y-m-d');
-            })
-            ->map(function ($group, $date) {
-                return [
-                    'date' => \Carbon\Carbon::parse($date)->format('d M'),
-                    'present' => $group->where('status', 'present')->count(),
-                    'late' => $group->where('status', 'late')->count(),
-                    'absent' => $group->where('status', 'absent')->count(),
-                ];
-            })
-            ->values();
+        // Attendance Trend (based on period)
+        $attendanceTrend = $this->getAttendanceTrend($storeId, $period);
 
         // Top Performers (employees with most reports)
         $topPerformers = ShiftReport::where('store_id', $storeId)
@@ -246,7 +202,120 @@ class DashboardController extends Controller
             'attendanceTrend' => $attendanceTrend,
             'topPerformers' => $topPerformers,
             'currentMonth' => $currentMonth,
+            'currentPeriod' => $period,
         ]);
+    }
+
+    private function getSalesTrend($storeId, $period)
+    {
+        $dateRange = $this->getDateRange($period);
+        $dateFormat = $this->getDateFormat($period);
+
+        return ShiftReportDetail::whereHas('shiftReport', function ($query) use ($storeId) {
+                $query->where('store_id', $storeId);
+            })
+            ->where('transaction_date', '>=', $dateRange['start'])
+            ->where('transaction_date', '<=', $dateRange['end'])
+            ->orderBy('transaction_date')
+            ->get()
+            ->groupBy(function ($item) use ($period) {
+                return $period === 'year' 
+                    ? $item->transaction_date->format('Y-m')
+                    : $item->transaction_date->format('Y-m-d');
+            })
+            ->map(function ($group, $date) use ($dateFormat) {
+                return [
+                    'date' => \Carbon\Carbon::parse($date)->format($dateFormat),
+                    'spd' => $group->sum('spd'),
+                    'std' => $group->sum('std'),
+                    'apc' => $group->avg('apc'),
+                ];
+            })
+            ->values();
+    }
+
+    private function getCashFlowTrend($storeId, $period)
+    {
+        $dateRange = $this->getDateRange($period);
+        $dateFormat = $this->getDateFormat($period);
+
+        return CashTransaction::where('store_id', $storeId)
+            ->where('status', 'approved')
+            ->where('transaction_date', '>=', $dateRange['start'])
+            ->where('transaction_date', '<=', $dateRange['end'])
+            ->orderBy('transaction_date')
+            ->get()
+            ->groupBy(function ($item) use ($period) {
+                return $period === 'year' 
+                    ? $item->transaction_date->format('Y-m')
+                    : $item->transaction_date->format('Y-m-d');
+            })
+            ->map(function ($group, $date) use ($dateFormat) {
+                return [
+                    'date' => \Carbon\Carbon::parse($date)->format($dateFormat),
+                    'income' => $group->where('type', 'income')->sum('amount'),
+                    'expense' => $group->where('type', 'expense')->sum('amount'),
+                ];
+            })
+            ->values();
+    }
+
+    private function getAttendanceTrend($storeId, $period)
+    {
+        $dateRange = $this->getDateRange($period);
+        $dateFormat = $this->getDateFormat($period);
+
+        return Attendance::where('store_id', $storeId)
+            ->where('attendance_date', '>=', $dateRange['start'])
+            ->where('attendance_date', '<=', $dateRange['end'])
+            ->orderBy('attendance_date')
+            ->get()
+            ->groupBy(function ($item) use ($period) {
+                return $period === 'year' 
+                    ? $item->attendance_date->format('Y-m')
+                    : $item->attendance_date->format('Y-m-d');
+            })
+            ->map(function ($group, $date) use ($dateFormat) {
+                return [
+                    'date' => \Carbon\Carbon::parse($date)->format($dateFormat),
+                    'present' => $group->where('status', 'present')->count(),
+                    'late' => $group->where('status', 'late')->count(),
+                    'absent' => $group->where('status', 'absent')->count(),
+                ];
+            })
+            ->values();
+    }
+
+    private function getDateRange($period)
+    {
+        return match($period) {
+            'week' => [
+                'start' => now()->subDays(7),
+                'end' => now(),
+            ],
+            'month' => [
+                'start' => now()->subDays(30),
+                'end' => now(),
+            ],
+            'year' => [
+                'start' => now()->subYear(),
+                'end' => now(),
+            ],
+            default => [
+                'start' => now()->subDays(7),
+                'end' => now(),
+            ],
+        };
+    }
+
+    private function getDateFormat($period)
+    {
+        return match($period) {
+            'week' => 'd M',
+            'month' => 'd M',
+            'year' => 'M Y',
+            default => 'd M',
+        };
     }
 
     private function calculateAttendanceRate($storeId)

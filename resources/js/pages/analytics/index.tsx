@@ -32,6 +32,8 @@ import {
     YAxis,
 } from 'recharts';
 import { formatCurrency, formatNumber } from '@/lib/utils';
+import { Chart3DWrapper, Chart3DTooltipStyle } from '@/components/chart-3d-wrapper';
+import { Bar3DShape } from '@/components/bar-3d-shape';
 
 interface Comparison {
     current: {
@@ -333,7 +335,7 @@ export default function Analytics({
                 </div>
 
                 {/* Daily SPD Chart */}
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg overflow-hidden">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg font-bold">
                             <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
@@ -343,25 +345,31 @@ export default function Analytics({
                         </CardTitle>
                         <CardDescription>SPD per hari bulan {currentMonth}</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pb-8">
                         {dailyData.length > 0 ? (
-                            <div className="h-62.5 sm:h-75 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={dailyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                        <defs>
-                                            <linearGradient id="dailyGrad" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                                        <XAxis dataKey="date" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
-                                        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v / 1000000).toFixed(1)}M`} axisLine={false} tickLine={false} />
-                                        <Tooltip formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value ?? '')} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }} />
-                                        <Area type="monotone" dataKey="spd" stroke="#ef4444" strokeWidth={2} fill="url(#dailyGrad)" activeDot={{ r: 6, fill: '#ef4444' }} />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
+                            <Chart3DWrapper intensity="medium">
+                                <div className="h-62.5 sm:h-75 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={dailyData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                                            <defs>
+                                                <linearGradient id="dailyGrad" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="0%" stopColor="#ef4444" stopOpacity={0.5} />
+                                                    <stop offset="50%" stopColor="#ef4444" stopOpacity={0.2} />
+                                                    <stop offset="100%" stopColor="#ef4444" stopOpacity={0.02} />
+                                                </linearGradient>
+                                                <filter id="shadow3dDailyArea">
+                                                    <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#ef4444" floodOpacity="0.3" />
+                                                </filter>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                                            <XAxis dataKey="date" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                                            <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v / 1000000).toFixed(1)}M`} axisLine={false} tickLine={false} />
+                                            <Tooltip formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value ?? '')} contentStyle={Chart3DTooltipStyle()} />
+                                            <Area type="monotone" dataKey="spd" stroke="#ef4444" strokeWidth={3} fill="url(#dailyGrad)" filter="url(#shadow3dDailyArea)" activeDot={{ r: 7, fill: '#ef4444', stroke: '#fff', strokeWidth: 3 }} />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </Chart3DWrapper>
                         ) : (
                             <div className="h-50 flex items-center justify-center text-gray-400">
                                 <div className="text-center">
@@ -374,7 +382,7 @@ export default function Analytics({
                 </Card>
 
                 {/* 6 Month Trend */}
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg overflow-hidden">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg font-bold">
                             <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -384,23 +392,25 @@ export default function Analytics({
                         </CardTitle>
                         <CardDescription>Perbandingan performa antar bulan</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pb-8">
                         {monthlyTrend.length > 0 ? (
-                            <div className="h-62.5 sm:h-75 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={monthlyTrend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                                        <XAxis dataKey="month_short" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                                        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v / 1000000).toFixed(0)}M`} axisLine={false} tickLine={false} />
-                                        <Tooltip formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value ?? '')} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }} />
-                                        <Bar dataKey="spd" radius={[8, 8, 0, 0]}>
-                                            {monthlyTrend.map((_, index) => (
-                                                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
+                            <Chart3DWrapper intensity="medium">
+                                <div className="h-62.5 sm:h-75 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                                            <XAxis dataKey="month_short" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                                            <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v / 1000000).toFixed(0)}M`} axisLine={false} tickLine={false} />
+                                            <Tooltip formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value ?? '')} contentStyle={Chart3DTooltipStyle()} />
+                                            <Bar dataKey="spd">
+                                                {monthlyTrend.map((_, index) => (
+                                                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </Chart3DWrapper>
                         ) : (
                             <div className="h-50 flex items-center justify-center text-gray-400">
                                 <p>Belum ada data</p>

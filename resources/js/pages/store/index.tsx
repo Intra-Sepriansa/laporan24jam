@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { formatCurrency, formatNumber } from '@/lib/utils';
+import { Chart3DWrapper, Chart3DTooltipStyle } from '@/components/chart-3d-wrapper';
+import { Bar3DShape } from '@/components/bar-3d-shape';
 import { FormEvent, useState, useRef } from 'react';
 
 interface StoreData {
@@ -294,7 +296,7 @@ export default function StoreProfile({ store, stats, monthlySales }: Props) {
                 </div>
 
                 {/* Monthly Sales Chart */}
-                <Card className="border-0 shadow-lg">
+                <Card className="border-0 shadow-lg overflow-hidden">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2 text-lg font-bold">
                             <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
@@ -304,26 +306,28 @@ export default function StoreProfile({ store, stats, monthlySales }: Props) {
                         </CardTitle>
                         <CardDescription>Tren penjualan bulanan toko</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="pb-8">
                         {monthlySales.some(m => m.sales > 0) ? (
-                            <div className="h-62.5 sm:h-75 w-full">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={monthlySales} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
-                                        <XAxis dataKey="month_short" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
-                                        <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v / 1000000).toFixed(0)}M`} axisLine={false} tickLine={false} />
-                                        <Tooltip
-                                            formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value ?? '')}
-                                            contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}
-                                        />
-                                        <Bar dataKey="sales" radius={[8, 8, 0, 0]}>
-                                            {monthlySales.map((_, index) => (
-                                                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
+                            <Chart3DWrapper intensity="medium">
+                                <div className="h-62.5 sm:h-75 w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={monthlySales} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+                                            <XAxis dataKey="month_short" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                                            <YAxis tick={{ fontSize: 10 }} tickFormatter={(v: number) => `${(v / 1000000).toFixed(0)}M`} axisLine={false} tickLine={false} />
+                                            <Tooltip
+                                                formatter={(value) => typeof value === 'number' ? formatCurrency(value) : String(value ?? '')}
+                                                contentStyle={Chart3DTooltipStyle()}
+                                            />
+                                            <Bar dataKey="sales">
+                                                {monthlySales.map((_, index) => (
+                                                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </Chart3DWrapper>
                         ) : (
                             <div className="h-50 flex items-center justify-center text-gray-400">
                                 <div className="text-center">
