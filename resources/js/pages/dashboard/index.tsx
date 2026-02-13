@@ -24,10 +24,12 @@ import {
     CheckCircle,
     AlertCircle,
     Award,
-    Activity
+    Activity,
+    Loader2
 } from 'lucide-react';
 import { Area, AreaChart, Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { formatCurrency, formatNumber } from '@/lib/utils';
+import { useState, useEffect } from 'react';
 import { create, index, show } from '@/routes/reports';
 
 interface Statistics {
@@ -106,8 +108,31 @@ export default function Dashboard({
     currentMonth,
     currentPeriod 
 }: Props) {
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const handleStart = () => setIsLoading(true);
+        const handleFinish = () => setIsLoading(false);
+
+        router.on('start', handleStart);
+        router.on('finish', handleFinish);
+
+        return () => {
+            router.off('start', handleStart);
+            router.off('finish', handleFinish);
+        };
+    }, []);
+
     const changePeriod = (period: string) => {
-        router.get('/dashboard', { period }, { preserveState: true });
+        router.get('/dashboard', 
+            { period }, 
+            { 
+                preserveState: true,
+                preserveScroll: true,
+                only: ['salesTrend', 'cashFlowTrend', 'attendanceTrend', 'currentPeriod'],
+                replace: true,
+            }
+        );
     };
     const quickActions = [
         {
@@ -312,6 +337,7 @@ export default function Dashboard({
                                     variant={currentPeriod === 'week' ? 'default' : 'outline'}
                                     size="sm"
                                     onClick={() => changePeriod('week')}
+                                    disabled={isLoading}
                                     className={currentPeriod === 'week' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                                 >
                                     1 Minggu
@@ -320,6 +346,7 @@ export default function Dashboard({
                                     variant={currentPeriod === 'month' ? 'default' : 'outline'}
                                     size="sm"
                                     onClick={() => changePeriod('month')}
+                                    disabled={isLoading}
                                     className={currentPeriod === 'month' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                                 >
                                     1 Bulan
@@ -328,6 +355,7 @@ export default function Dashboard({
                                     variant={currentPeriod === '3months' ? 'default' : 'outline'}
                                     size="sm"
                                     onClick={() => changePeriod('3months')}
+                                    disabled={isLoading}
                                     className={currentPeriod === '3months' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                                 >
                                     3 Bulan
@@ -336,6 +364,7 @@ export default function Dashboard({
                                     variant={currentPeriod === '6months' ? 'default' : 'outline'}
                                     size="sm"
                                     onClick={() => changePeriod('6months')}
+                                    disabled={isLoading}
                                     className={currentPeriod === '6months' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                                 >
                                     6 Bulan
@@ -344,6 +373,7 @@ export default function Dashboard({
                                     variant={currentPeriod === '9months' ? 'default' : 'outline'}
                                     size="sm"
                                     onClick={() => changePeriod('9months')}
+                                    disabled={isLoading}
                                     className={currentPeriod === '9months' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                                 >
                                     9 Bulan
@@ -352,6 +382,7 @@ export default function Dashboard({
                                     variant={currentPeriod === 'year' ? 'default' : 'outline'}
                                     size="sm"
                                     onClick={() => changePeriod('year')}
+                                    disabled={isLoading}
                                     className={currentPeriod === 'year' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                                 >
                                     1 Tahun
@@ -367,10 +398,21 @@ export default function Dashboard({
                         <CardTitle className="flex items-center gap-2">
                             <TrendingUp className="w-5 h-5 text-red-600" />
                             Tren Penjualan
+                            {isLoading && (
+                                <Loader2 className="w-4 h-4 animate-spin text-red-600 ml-2" />
+                            )}
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="pt-6">
-                        <div className="h-[400px]">
+                    <CardContent className="pt-6 relative">
+                        {isLoading && (
+                            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                                <div className="flex flex-col items-center gap-3">
+                                    <Loader2 className="w-8 h-8 animate-spin text-red-600" />
+                                    <p className="text-sm text-gray-600 font-medium">Memuat data...</p>
+                                </div>
+                            </div>
+                        )}
+                        <div className={`h-[400px] transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={salesTrend}>
                                     <defs>
@@ -383,7 +425,15 @@ export default function Dashboard({
                                     <XAxis dataKey="date" tick={{ fontSize: 12 }} />
                                     <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
                                     <Tooltip formatter={(value: any) => formatCurrency(value)} />
-                                    <Area type="monotone" dataKey="spd" stroke="#ef4444" strokeWidth={3} fill="url(#colorSpd)" />
+                                    <Area 
+                                        type="monotone" 
+                                        dataKey="spd" 
+                                        stroke="#ef4444" 
+                                        strokeWidth={3} 
+                                        fill="url(#colorSpd)"
+                                        animationDuration={800}
+                                        animationEasing="ease-in-out"
+                                    />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
@@ -398,10 +448,18 @@ export default function Dashboard({
                             <CardTitle className="flex items-center gap-2">
                                 <Users className="w-5 h-5 text-blue-600" />
                                 Kehadiran
+                                {isLoading && (
+                                    <Loader2 className="w-4 h-4 animate-spin text-blue-600 ml-2" />
+                                )}
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="pt-6">
-                            <div className="h-[250px]">
+                        <CardContent className="pt-6 relative">
+                            {isLoading && (
+                                <div className="absolute inset-0 bg-white/80 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg">
+                                    <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                                </div>
+                            )}
+                            <div className={`h-[250px] transition-opacity duration-300 ${isLoading ? 'opacity-50' : 'opacity-100'}`}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={attendanceTrend}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -409,8 +467,24 @@ export default function Dashboard({
                                         <YAxis tick={{ fontSize: 12 }} />
                                         <Tooltip />
                                         <Legend />
-                                        <Line type="monotone" dataKey="present" stroke="#10b981" strokeWidth={2} name="Hadir" />
-                                        <Line type="monotone" dataKey="late" stroke="#f59e0b" strokeWidth={2} name="Terlambat" />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="present" 
+                                            stroke="#10b981" 
+                                            strokeWidth={2} 
+                                            name="Hadir"
+                                            animationDuration={800}
+                                            animationEasing="ease-in-out"
+                                        />
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="late" 
+                                            stroke="#f59e0b" 
+                                            strokeWidth={2} 
+                                            name="Terlambat"
+                                            animationDuration={800}
+                                            animationEasing="ease-in-out"
+                                        />
                                     </LineChart>
                                 </ResponsiveContainer>
                             </div>
