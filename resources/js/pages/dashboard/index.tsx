@@ -361,62 +361,34 @@ export default function Dashboard({
                     </CardContent>
                 </Card>
 
-                {/* Charts Row */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Sales Trend */}
-                    <Card className="shadow-xl">
-                        <CardHeader className="bg-gradient-to-r from-red-50 to-red-100 border-b-2">
-                            <CardTitle className="flex items-center gap-2">
-                                <TrendingUp className="w-5 h-5 text-red-600" />
-                                Tren Penjualan
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                            <div className="h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={salesTrend}>
-                                        <defs>
-                                            <linearGradient id="colorSpd" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                                        <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
-                                        <Tooltip formatter={(value: any) => formatCurrency(value)} />
-                                        <Area type="monotone" dataKey="spd" stroke="#ef4444" strokeWidth={2} fill="url(#colorSpd)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* Cash Flow Trend */}
-                    <Card className="shadow-xl">
-                        <CardHeader className="bg-gradient-to-r from-green-50 to-green-100 border-b-2">
-                            <CardTitle className="flex items-center gap-2">
-                                <Wallet className="w-5 h-5 text-green-600" />
-                                Arus Kas
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                            <div className="h-[300px]">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={cashFlowTrend}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                                        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                                        <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
-                                        <Tooltip formatter={(value: any) => formatCurrency(value)} />
-                                        <Legend />
-                                        <Bar dataKey="income" fill="#10b981" name="Pemasukan" radius={[8, 8, 0, 0]} />
-                                        <Bar dataKey="expense" fill="#ef4444" name="Pengeluaran" radius={[8, 8, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                {/* Charts Row - Single Large Chart */}
+                <Card className="shadow-xl">
+                    <CardHeader className="bg-gradient-to-r from-red-50 to-red-100 border-b-2">
+                        <CardTitle className="flex items-center gap-2">
+                            <TrendingUp className="w-5 h-5 text-red-600" />
+                            Tren Penjualan
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-6">
+                        <div className="h-[400px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={salesTrend}>
+                                    <defs>
+                                        <linearGradient id="colorSpd" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                                        </linearGradient>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                    <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(value) => `${(value / 1000000).toFixed(1)}M`} />
+                                    <Tooltip formatter={(value: any) => formatCurrency(value)} />
+                                    <Area type="monotone" dataKey="spd" stroke="#ef4444" strokeWidth={3} fill="url(#colorSpd)" />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </CardContent>
+                </Card>
 
                 {/* Bottom Row */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
