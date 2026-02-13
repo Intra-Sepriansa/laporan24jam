@@ -162,9 +162,9 @@ export default function EditReport() {
 
     const calculateTotals = () => {
         const totals = data.details.reduce((acc, detail) => ({
-            spd: acc.spd + (detail.spd || 0),
-            std: acc.std + (detail.std || 0),
-            pulsa: acc.pulsa + (detail.pulsa || 0),
+            spd: acc.spd + (Number(detail.spd) || 0),
+            std: acc.std + (Number(detail.std) || 0),
+            pulsa: acc.pulsa + (Number(detail.pulsa) || 0),
         }), { spd: 0, std: 0, pulsa: 0 });
 
         const avgApc = totals.std > 0 ? totals.spd / totals.std : 0;
