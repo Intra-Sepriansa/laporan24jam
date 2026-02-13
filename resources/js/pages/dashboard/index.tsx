@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { Area, AreaChart, Bar, BarChart, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { formatCurrency, formatNumber } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { create, index, show } from '@/routes/reports';
 
 interface Statistics {
@@ -110,20 +110,8 @@ export default function Dashboard({
 }: Props) {
     const [isLoading, setIsLoading] = useState(false);
 
-    useEffect(() => {
-        const handleStart = () => setIsLoading(true);
-        const handleFinish = () => setIsLoading(false);
-
-        router.on('start', handleStart);
-        router.on('finish', handleFinish);
-
-        return () => {
-            router.off('start', handleStart);
-            router.off('finish', handleFinish);
-        };
-    }, []);
-
     const changePeriod = (period: string) => {
+        setIsLoading(true);
         router.get('/dashboard', 
             { period }, 
             { 
@@ -131,6 +119,9 @@ export default function Dashboard({
                 preserveScroll: true,
                 only: ['salesTrend', 'cashFlowTrend', 'attendanceTrend', 'currentPeriod'],
                 replace: true,
+                onFinish: () => {
+                    setIsLoading(false);
+                },
             }
         );
     };
