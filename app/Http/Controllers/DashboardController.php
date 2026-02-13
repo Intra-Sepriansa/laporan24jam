@@ -313,8 +313,8 @@ class DashboardController extends Controller
                 'end' => now(),
             ],
             'month' => [
-                'start' => now()->subMonth(),
-                'end' => now(),
+                'start' => now()->startOfMonth(),  // Dari tanggal 1 bulan ini
+                'end' => now(),                     // Sampai hari ini
             ],
             '3months' => [
                 'start' => now()->subMonths(3),
